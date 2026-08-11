@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #FFFAF1;
+  --background: #fffefc;
   --foreground: #171717;
   --primary: #0E2F29;
   --secondary: #0A4D34;
@@ -14,7 +14,8 @@
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
   --color-tertiary: var(--tertiary);
-  --font-sans: var(--font-cormorant);
+  --font-sans: var(--font-manrope);
+  --font-serif: var(--font-cormorant);
 }
 
 
