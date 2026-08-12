@@ -1,9 +1,11 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ChevronRight, ChevronLeft } from "lucide-react";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 
 const articlesData = [
   {
@@ -34,17 +36,47 @@ const articlesData = [
     image: "/hero.png",
     href: "#",
   },
+  {
+    category: "Depression",
+    date: "May 1, 2024",
+    title: "Signs of Depression You Shouldn't Ignore",
+    image: "/hero.png",
+    href: "#",
+  },
+  {
+    category: "Depression",
+    date: "May 1, 2024",
+    title: "Signs of Depression You Shouldn't Ignore",
+    image: "/hero.png",
+    href: "#",
+  },
+  {
+    category: "Depression",
+    date: "May 1, 2024",
+    title: "Signs of Depression You Shouldn't Ignore",
+    image: "/hero.png",
+    href: "#",
+  },
+  {
+    category: "Depression",
+    date: "May 1, 2024",
+    title: "Signs of Depression You Shouldn't Ignore",
+    image: "/hero.png",
+    href: "#",
+  },
 ];
 
 export default function Resources() {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const autoplayPlugin = useRef(
+    Autoplay({ delay: 1500, stopOnInteraction: false, stopOnMouseEnter: true, playOnInit: true })
+  );
 
-  const scroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      const scrollAmount = direction === "left" ? -300 : 300;
-      scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
-    }
-  };
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, align: "start", duration: 20 },
+    [autoplayPlugin.current]
+  );
+
+
 
   return (
     <>
@@ -69,64 +101,54 @@ export default function Resources() {
       {/* Articles Carousel */}
       <div className="relative group">
         <div
-          ref={scrollRef}
-          className="flex overflow-x-auto pb-8 snap-x snap-mandatory gap-6 no-scrollbar hide-scrollbar"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          ref={emblaRef}
+          className="overflow-hidden pb-8"
         >
-          {articlesData.map((article, index) => (
-            <div
-              key={index}
-              className="snap-start shrink-0 w-[280px] md:w-[320px] lg:w-[calc(25%-18px)] bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-black/[0.03] overflow-hidden flex flex-col group/card transition-transform hover:-translate-y-1"
-            >
-              {/* Image Container */}
-              <div className="w-full h-[180px] relative overflow-hidden bg-gray-100">
-                <Image
-                  src={article.image}
-                  alt={article.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover/card:scale-105"
-                />
-              </div>
+          <div className="flex touch-pan-y flex-row -ml-6">
+            {articlesData.map((article, index) => (
+              <div
+                key={index}
+                className="flex-[0_0_280px] md:flex-[0_0_320px] lg:flex-[0_0_25%] pl-6"
+              >
+                <div className="h-full bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.05)] border border-black/[0.03] overflow-hidden flex flex-col group/card transition-transform hover:-translate-y-1">
+                  {/* Image Container */}
+                  <div className="w-full h-[180px] relative overflow-hidden bg-gray-100">
+                    <Image
+                      src={article.image}
+                      alt={article.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover/card:scale-105"
+                    />
+                  </div>
 
-              {/* Content */}
-              <div className="p-5 flex flex-col flex-grow">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[10px] font-bold text-secondary bg-secondary/10 px-2.5 py-1 rounded-full">
-                    {article.category}
-                  </span>
-                  <span className="text-[11px] font-medium text-foreground/40">
-                    {article.date}
-                  </span>
+                  {/* Content */}
+                  <div className="p-5 flex flex-col flex-grow">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-[10px] font-bold text-secondary bg-secondary/10 px-2.5 py-1 rounded-full">
+                        {article.category}
+                      </span>
+                      <span className="text-[11px] font-medium text-foreground/40">
+                        {article.date}
+                      </span>
+                    </div>
+
+                    <h3 className="font-bold text-foreground text-[15px] leading-snug mb-6 flex-grow">
+                      {article.title}
+                    </h3>
+
+                    <Link
+                      href={article.href}
+                      className="mt-auto inline-flex items-center gap-1.5 text-xs font-bold text-secondary hover:text-secondary/80 transition-colors"
+                    >
+                      Read More <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
                 </div>
-                
-                <h3 className="font-bold text-foreground text-[15px] leading-snug mb-6 flex-grow">
-                  {article.title}
-                </h3>
-                
-                <Link
-                  href={article.href}
-                  className="mt-auto inline-flex items-center gap-1.5 text-xs font-bold text-secondary hover:text-secondary/80 transition-colors"
-                >
-                  Read More <ArrowRight className="w-3 h-3" />
-                </Link>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Scroll Buttons */}
-        <button
-          onClick={() => scroll("left")}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 bg-white rounded-full shadow-lg border border-black/5 flex items-center justify-center text-foreground hover:bg-gray-50 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-0 z-10"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <button
-          onClick={() => scroll("right")}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-10 h-10 bg-white rounded-full shadow-lg border border-black/5 flex items-center justify-center text-foreground hover:bg-gray-50 transition-colors opacity-100 z-10"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
       </div>
     </>
   );
