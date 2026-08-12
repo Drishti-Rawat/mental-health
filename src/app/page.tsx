@@ -13,9 +13,9 @@ export default function Home() {
   return (
     <>
       <Header />
-      <main className="flex-1 flex flex-col w-full min-h-screen">
+      <main className="flex-1 flex flex-col w-full min-h-screen overflow-x-hidden">
         <Hero />
-        <div className="container mx-auto px-6 lg:px-12 space-y-16 py-2 pb-24">
+        <div className="site-container space-y-12 sm:space-y-16 py-2 pb-16 sm:pb-24">
           <Stats />
           <Services />
           <Therapists />
