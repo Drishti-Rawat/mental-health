@@ -73,7 +73,7 @@ export default function Services() {
         <span className="inline-block bg-secondary/10 text-secondary font-semibold text-[11px] tracking-wider uppercase rounded-full px-4 py-1.5 mb-3">
           What We Help With
         </span>
-        <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-primary mb-3 max-w-2xl">
+        <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-secondary mb-3 max-w-2xl">
           Conditions We Support
         </h2>
         <p className="text-foreground/70 max-w-xl text-sm sm:text-base">
@@ -92,14 +92,14 @@ export default function Services() {
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${service.iconTheme}`}>
                 <service.icon className="w-5 h-5" strokeWidth={2} />
               </div>
-              <h3 className="font-serif text-lg sm:text-xl font-bold mb-2 text-primary">
+              <h3 className="font-serif text-lg sm:text-xl font-bold mb-2 text-secondary">
                 {service.title}
               </h3>
               <p className={`text-xs sm:text-sm leading-relaxed mb-6 text-foreground/70`}>
                 {service.description}
               </p>
             </div>
-            
+
             <Link
               href={service.href}
               className={`inline-flex items-center gap-1.5 font-bold text-xs border-b-2 pb-0.5 w-fit transition-colors ${service.linkTheme}`}

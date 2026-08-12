@@ -84,7 +84,7 @@ export default function Resources() {
           <span className="inline-block bg-secondary/10 text-secondary font-semibold text-[11px] tracking-wider uppercase rounded-full px-4 py-1.5 mb-3">
             From Our Blog
           </span>
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-primary mb-2">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-secondary mb-2">
             Resources for your well-being
           </h2>
           <p className="text-foreground/70 text-sm sm:text-base lg:text-lg">
@@ -130,7 +130,7 @@ export default function Resources() {
                       </span>
                     </div>
 
-                    <h3 className="font-bold text-primary text-[15px] leading-snug mb-6 flex-grow">
+                    <h3 className="font-bold text-secondary text-[15px] leading-snug mb-6 flex-grow">
                       {article.title}
                     </h3>
 

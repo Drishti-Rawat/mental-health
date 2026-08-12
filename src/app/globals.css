@@ -26,7 +26,7 @@ body {
 
 .site-container {
   width: 100%;
-  max-width: 80rem; /* 1280px */
+  max-width: 90rem; /* 1440px */
   margin-left: auto;
   margin-right: auto;
   padding-left: 1rem;
@@ -42,8 +42,8 @@ body {
 
 @media (min-width: 1024px) {
   .site-container {
-    padding-left: 3rem;
-    padding-right: 3rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
   }
 }
 

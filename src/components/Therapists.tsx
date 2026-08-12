@@ -60,7 +60,7 @@ export default function Therapists() {
           <span className="inline-block bg-secondary/10 text-secondary font-semibold text-[10px] md:text-xs tracking-wider uppercase rounded-full px-3.5 py-1.5 mb-3">
             Meet Our Experts
           </span>
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-primary mb-2">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-secondary mb-2">
             Our Compassionate Therapists
           </h2>
           <p className="text-foreground/70 text-sm sm:text-base lg:text-lg max-w-xl">
@@ -74,8 +74,8 @@ export default function Therapists() {
 
       {/* Responsive Carousel View */}
       <div className="w-full relative">
-        <div 
-          className="overflow-hidden rounded-2xl" 
+        <div
+          className="overflow-hidden rounded-2xl"
           ref={emblaRef}
           onMouseEnter={() => plugin.current.stop()}
           onMouseLeave={() => plugin.current.play()}
@@ -88,7 +88,7 @@ export default function Therapists() {
                     <Image src={therapist.image} alt={therapist.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                   </div>
                   <div className="p-5 flex flex-col flex-grow">
-                    <h3 className="font-bold text-base md:text-lg text-primary mb-0.5">{therapist.name}</h3>
+                    <h3 className="font-bold text-base md:text-lg text-secondary mb-0.5">{therapist.name}</h3>
                     <p className="text-xs text-foreground/60 mb-3">{therapist.role}</p>
 
                     <div className="flex items-center gap-1.5 mb-2">
@@ -110,7 +110,7 @@ export default function Therapists() {
           </div>
         </div>
       </div>
-      
+
       {/* Mobile View All Button */}
       <div className="sm:hidden mt-6 text-center">
         <button className="w-full px-6 py-3 rounded-full border-2 border-secondary text-secondary font-semibold hover:bg-tertiary transition-colors text-sm">
