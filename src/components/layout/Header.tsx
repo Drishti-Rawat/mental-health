@@ -44,8 +44,12 @@ export default function Header({
   const { user, logout } = useAuth();
   const pathname = usePathname();
 
-  // Do NOT render top Header on Auth pages (/login and /register)
-  const isAuthRoute = pathname === "/login" || pathname === "/register";
+  // Do NOT render top Header on Auth pages (/login, /register, /admin/login, /admin/signup)
+  const isAuthRoute =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/admin/login" ||
+    pathname === "/admin/signup";
   if (isAuthRoute) return null;
 
   // Check route types

@@ -22,7 +22,7 @@ export const setOnTokenRefreshedListener = (callback: (newToken: string | null) 
 // Create main Axios instance
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true, // Send HTTP-only cookies (refreshToken) with requests
+  withCredentials: true, // Send HTTP-only cookies with requests
   headers: {
     'Content-Type': 'application/json',
   },
@@ -57,7 +57,7 @@ apiClient.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error)
 );
 
-// Response Interceptor: Handle 401 Unauthorized & Silent Refresh
+// Response Interceptor: Route-Aware 401 Unauthorized & Silent Refresh
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -65,9 +65,9 @@ apiClient.interceptors.response.use(
 
     // Bypass refresh for login, register, and refresh endpoints to avoid infinite loops
     const isAuthEndpoint =
-      originalRequest?.url?.includes('/api/auth/login') ||
-      originalRequest?.url?.includes('/api/auth/register') ||
-      originalRequest?.url?.includes('/api/auth/refresh');
+      originalRequest?.url?.includes('/login') ||
+      originalRequest?.url?.includes('/register') ||
+      originalRequest?.url?.includes('/refresh');
 
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
@@ -86,10 +86,16 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
+      // Determine appropriate refresh endpoint based on target API domain
+      const isAdminRequest = originalRequest?.url?.includes('/api/admin');
+      const refreshEndpoint = isAdminRequest
+        ? `${API_BASE_URL}/api/admin/auth/refresh`
+        : `${API_BASE_URL}/api/auth/refresh`;
+
       try {
-        // Attempt silent refresh using HTTP-only cookie
+        // Attempt silent refresh using role-specific HTTP-only cookie
         const refreshResponse = await axios.post(
-          `${API_BASE_URL}/api/auth/refresh`,
+          refreshEndpoint,
           {},
           { withCredentials: true }
         );

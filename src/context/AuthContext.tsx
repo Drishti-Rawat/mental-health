@@ -11,6 +11,7 @@ import {
   getMeApi,
   refreshApi,
 } from '../services/authApi';
+import { loginAdminApi, refreshAdminApi, logoutAdminApi } from '../services/adminApi';
 import { setAccessToken } from '../services/apiClient';
 
 interface AuthContextType {
@@ -18,6 +19,7 @@ interface AuthContextType {
   accessToken: string | null;
   loading: boolean;
   login: (credentials: LoginPayload) => Promise<UserData>;
+  loginAdmin: (credentials: LoginPayload) => Promise<UserData>;
   register: (payload: RegisterPayload) => Promise<{ user: UserData; isPendingApproval?: boolean }>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -35,18 +37,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setAccessToken(token);
   };
 
-  // Check initial session on mount via HTTP-only cookie refresh
+  // Check initial session on mount via domain-aware HTTP-only cookie refresh
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // Attempt silent refresh
-        const res = await refreshApi();
+        const path = typeof window !== 'undefined' ? window.location.pathname : '';
+        const isAdminRoute = path.startsWith('/admin');
+
+        let res: { accessToken: string | null; user: UserData };
+        if (isAdminRoute) {
+          const adminRes = await refreshAdminApi();
+          res = { accessToken: adminRes.accessToken, user: adminRes.admin };
+        } else {
+          const userRes = await refreshApi();
+          res = { accessToken: userRes.accessToken, user: userRes.user };
+        }
+
         if (res.accessToken && res.user) {
           updateAccessToken(res.accessToken);
           setUser(res.user);
         }
       } catch (err) {
-        // No active session cookie or expired
+        // Active session missing or expired for target domain
         updateAccessToken(null);
         setUser(null);
       } finally {
@@ -66,6 +78,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return res.user;
   };
 
+  const loginAdmin = async (credentials: LoginPayload): Promise<UserData> => {
+    const res = await loginAdminApi(credentials);
+    if (res.accessToken) {
+      updateAccessToken(res.accessToken);
+    }
+    setUser(res.admin);
+    return res.admin;
+  };
+
   const register = async (payload: RegisterPayload) => {
     const res = await registerApi(payload);
     if (res.accessToken && res.user && res.user.status === 'active') {
@@ -77,7 +98,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await logoutApi();
+      const path = typeof window !== 'undefined' ? window.location.pathname : '';
+      const isAdminRoute = path.startsWith('/admin') || user?.role === 'admin' || user?.role === 'supervisor' || user?.role === 'superadmin';
+
+      if (isAdminRoute) {
+        await logoutAdminApi();
+      } else {
+        await logoutApi();
+      }
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
@@ -107,6 +135,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         accessToken: accessTokenState,
         loading,
         login,
+        loginAdmin,
         register,
         logout,
         refreshProfile,

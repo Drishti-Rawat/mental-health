@@ -5,7 +5,7 @@ export interface AdminPayload {
   name: string;
   email: string;
   password: string;
-  role?: 'admin' | 'supervisor';
+  role?: 'admin' | 'supervisor' | 'superadmin';
 }
 
 export interface AdminAuthResponse {
@@ -35,6 +35,22 @@ export const registerAdminApi = async (payload: AdminPayload) => {
  */
 export const loginAdminApi = async (payload: { email: string; password: string }): Promise<AdminAuthResponse> => {
   const response = await apiClient.post<AdminAuthResponse>('/api/admin/auth/login', payload);
+  return response.data;
+};
+
+/**
+ * Silent refresh for Admin / Supervisor
+ */
+export const refreshAdminApi = async (): Promise<AdminAuthResponse> => {
+  const response = await apiClient.post<AdminAuthResponse>('/api/admin/auth/refresh');
+  return response.data;
+};
+
+/**
+ * Logout Admin session
+ */
+export const logoutAdminApi = async () => {
+  const response = await apiClient.post('/api/admin/auth/logout');
   return response.data;
 };
 
