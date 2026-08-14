@@ -139,16 +139,16 @@ export default function Header({
               <div className="relative">
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-2.5 p-1.5 pr-3 rounded-full border border-slate-200/80 bg-slate-50/50 hover:bg-slate-100/60 transition cursor-pointer focus:outline-none"
+                  className="flex items-center gap-2.5 p-1 hover:opacity-80 transition cursor-pointer focus:outline-none"
                 >
-                  <div className="w-8 h-8 rounded-full bg-secondary/10 text-secondary font-bold text-xs flex items-center justify-center border border-secondary/20">
+                  <div className="w-8 h-8 rounded-full bg-secondary/10 text-secondary font-bold text-xs flex items-center justify-center border border-secondary/20 shrink-0">
                     {user.name?.charAt(0).toUpperCase() || "U"}
                   </div>
-                  <div className="hidden sm:block text-left">
+                  <div className="text-left">
                     <div className="text-xs font-bold text-foreground leading-tight">{user.name}</div>
                     <div className="text-[10px] text-secondary capitalize leading-tight">{user.role}</div>
                   </div>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 </button>
 
                 {/* Avatar Dropdown: Contains JUST Log Out */}
