@@ -6,10 +6,12 @@ import { AlertCircle, X } from 'lucide-react';
 export interface ConfirmModalProps {
   isOpen: boolean;
   title: string;
-  description: string | React.ReactNode;
+  description?: string | React.ReactNode;
+  message?: string | React.ReactNode;
   confirmText?: string;
   cancelText?: string;
   variant?: 'danger' | 'warning' | 'primary';
+  type?: 'danger' | 'warning' | 'primary';
   isLoading?: boolean;
   onConfirm: () => void;
   onClose: () => void;
@@ -19,9 +21,11 @@ export default function ConfirmModal({
   isOpen,
   title,
   description,
+  message,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
-  variant = 'danger',
+  variant,
+  type,
   isLoading = false,
   onConfirm,
   onClose,
@@ -43,7 +47,9 @@ export default function ConfirmModal({
     },
   };
 
-  const style = variantStyles[variant] || variantStyles.danger;
+  const activeVariant = variant || type || 'danger';
+  const style = variantStyles[activeVariant] || variantStyles.danger;
+  const contentText = description || message;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
@@ -62,7 +68,7 @@ export default function ConfirmModal({
         <div>
           <h3 className="text-lg font-bold text-foreground">{title}</h3>
           <div className="text-xs text-secondary mt-1 leading-relaxed">
-            {description}
+            {contentText}
           </div>
         </div>
 

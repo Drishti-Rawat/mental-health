@@ -162,11 +162,17 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <div className="text-center pt-2 border-t border-slate-100">
+      <div className="text-center pt-3 border-t border-slate-100 space-y-2">
         <p className="text-sm text-secondary">
           Don't have an account?{' '}
           <Link href="/register" className="font-bold text-secondary hover:underline">
             Create Account
+          </Link>
+        </p>
+        <p className="text-xs text-slate-500">
+          Are you a Clinical Practitioner?{' '}
+          <Link href="/therapist/login" className="font-bold text-secondary hover:underline">
+            Practitioner Login Portal →
           </Link>
         </p>
       </div>

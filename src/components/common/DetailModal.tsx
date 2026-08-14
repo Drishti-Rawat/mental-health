@@ -18,7 +18,8 @@ export interface DetailModalProps {
     variant?: 'emerald' | 'amber' | 'purple' | 'blue' | 'rose';
   };
   avatarLetter?: string;
-  fields: DetailField[];
+  fields?: DetailField[];
+  data?: Record<string, any>;
   actions?: React.ReactNode;
   onClose: () => void;
 }
@@ -30,6 +31,7 @@ export default function DetailModal({
   badge,
   avatarLetter,
   fields,
+  data,
   actions,
   onClose,
 }: DetailModalProps) {
@@ -42,6 +44,15 @@ export default function DetailModal({
     blue: 'bg-blue-50 text-blue-700 border-blue-200',
     rose: 'bg-rose-50 text-rose-700 border-rose-200',
   };
+
+  const displayFields: DetailField[] = Array.isArray(fields)
+    ? fields
+    : data && typeof data === 'object'
+    ? Object.entries(data).map(([label, val]) => ({
+        label,
+        value: typeof val === 'object' && val !== null ? JSON.stringify(val) : String(val ?? 'N/A'),
+      }))
+    : [];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-200">
@@ -75,7 +86,7 @@ export default function DetailModal({
         </div>
 
         <div className="space-y-3 pt-2 border-t border-slate-100 text-xs sm:text-sm">
-          {fields.map((field, idx) => {
+          {displayFields.map((field, idx) => {
             const Icon = field.icon;
             return (
               <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50/60">

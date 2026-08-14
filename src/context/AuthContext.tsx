@@ -6,6 +6,7 @@ import {
   LoginPayload,
   RegisterPayload,
   loginApi,
+  loginTherapistApi,
   registerApi,
   logoutApi,
   getMeApi,
@@ -19,6 +20,7 @@ interface AuthContextType {
   accessToken: string | null;
   loading: boolean;
   login: (credentials: LoginPayload) => Promise<UserData>;
+  loginTherapist: (credentials: LoginPayload) => Promise<UserData>;
   loginAdmin: (credentials: LoginPayload) => Promise<UserData>;
   register: (payload: RegisterPayload) => Promise<{ user: UserData; isPendingApproval?: boolean }>;
   logout: () => Promise<void>;
@@ -71,6 +73,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (credentials: LoginPayload): Promise<UserData> => {
     const res = await loginApi(credentials);
+    if (res.accessToken) {
+      updateAccessToken(res.accessToken);
+    }
+    setUser(res.user);
+    return res.user;
+  };
+
+  const loginTherapist = async (credentials: LoginPayload): Promise<UserData> => {
+    const res = await loginTherapistApi(credentials);
     if (res.accessToken) {
       updateAccessToken(res.accessToken);
     }
@@ -135,6 +146,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         accessToken: accessTokenState,
         loading,
         login,
+        loginTherapist,
         loginAdmin,
         register,
         logout,

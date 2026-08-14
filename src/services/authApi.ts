@@ -4,8 +4,9 @@ export interface UserData {
   id: string;
   name: string;
   email: string;
-  role: 'user' | 'therapist' | 'admin' | 'supervisor' | 'superadmin';
-  status: 'active' | 'pending_approval' | 'inactive' | 'rejected';
+  role: 'user' | 'therapist' | 'admin' | 'supervisor' | 'superadmin' | string;
+  status: 'active' | 'pending_approval' | 'approved' | 'inactive' | 'rejected' | string;
+  createdAt?: string;
 }
 
 export interface AuthResponse {
@@ -37,10 +38,18 @@ export const registerApi = async (payload: RegisterPayload): Promise<AuthRespons
 };
 
 /**
- * Login user (patient, therapist, admin)
+ * Patient Login (standard)
  */
 export const loginApi = async (payload: LoginPayload): Promise<AuthResponse> => {
   const response = await apiClient.post<AuthResponse>('/api/auth/login', payload);
+  return response.data;
+};
+
+/**
+ * Dedicated Therapist Clinical Portal Login
+ */
+export const loginTherapistApi = async (payload: LoginPayload): Promise<AuthResponse> => {
+  const response = await apiClient.post<AuthResponse>('/api/auth/therapist-login', payload);
   return response.data;
 };
 
@@ -59,7 +68,6 @@ export const logoutApi = async (): Promise<{ success: boolean; message: string }
   const response = await apiClient.post<{ success: boolean; message: string }>('/api/auth/logout');
   return response.data;
 };
-
 
 /**
  * Fetch authenticated user profile

@@ -63,11 +63,14 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // Bypass refresh for login, register, and refresh endpoints to avoid infinite loops
+    // Bypass refresh for authentication endpoints (login, register, refresh, password setup)
+    const reqUrl = (originalRequest?.url || '').toLowerCase();
     const isAuthEndpoint =
-      originalRequest?.url?.includes('/login') ||
-      originalRequest?.url?.includes('/register') ||
-      originalRequest?.url?.includes('/refresh');
+      reqUrl.includes('login') ||
+      reqUrl.includes('register') ||
+      reqUrl.includes('refresh') ||
+      reqUrl.includes('set-password') ||
+      reqUrl.includes('verify-invite-token');
 
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
