@@ -22,6 +22,34 @@ export interface PendingStaffResponse {
   pendingAdmins: UserData[];
 }
 
+export interface PaginationMetadata {
+  totalRecords: number;
+  totalPages: number;
+  currentPage: number;
+  limit: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface UsersListResponse {
+  success: boolean;
+  count: number;
+  pagination?: PaginationMetadata;
+  stats: {
+    total: number;
+    patients: number;
+    therapists: number;
+    active: number;
+    inactive: number;
+  };
+  users: UserData[];
+}
+
+export interface UserDetailsResponse {
+  success: boolean;
+  user: UserData;
+}
+
 /**
  * Register Admin or Supervisor application (pending approval)
  */
@@ -75,5 +103,43 @@ export const approveStaffApi = async (id: string) => {
  */
 export const rejectStaffApi = async (id: string) => {
   const response = await apiClient.patch(`/api/admin/staff/${id}/reject`);
+  return response.data;
+};
+
+/**
+ * Get all registered patient and therapist users with pagination, search, role & status filters
+ */
+export const getUsersApi = async (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  role?: string;
+}): Promise<UsersListResponse> => {
+  const response = await apiClient.get<UsersListResponse>('/api/admin/users', { params });
+  return response.data;
+};
+
+/**
+ * Get detailed profile info for a user
+ */
+export const getUserDetailsApi = async (id: string): Promise<UserDetailsResponse> => {
+  const response = await apiClient.get<UserDetailsResponse>(`/api/admin/users/${id}`);
+  return response.data;
+};
+
+/**
+ * Update user status (active, inactive, rejected)
+ */
+export const updateUserStatusApi = async (id: string, status: string) => {
+  const response = await apiClient.patch(`/api/admin/users/${id}/status`, { status });
+  return response.data;
+};
+
+/**
+ * Delete user account
+ */
+export const deleteUserApi = async (id: string) => {
+  const response = await apiClient.delete(`/api/admin/users/${id}`);
   return response.data;
 };
