@@ -352,11 +352,6 @@ export default function AdminPsychologistsPage() {
           <div>
             <h4 className="font-bold text-foreground text-sm tracking-tight group-hover:text-secondary transition-colors flex items-center gap-1.5">
               {item.name}
-              {item.status === 'pending_approval' && (
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-amber-500 text-white uppercase tracking-wider animate-pulse">
-                  New
-                </span>
-              )}
             </h4>
             <p className="text-xs text-secondary font-medium">{item.title}</p>
             {item.qualifications && (
@@ -425,7 +420,7 @@ export default function AdminPsychologistsPage() {
           return (
             <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 inline-flex items-center gap-1.5">
               <Clock className="w-3 h-3 text-amber-600 animate-pulse" />
-              Pending Admin Approval
+              Pending
             </span>
           );
         }
@@ -474,10 +469,9 @@ export default function AdminPsychologistsPage() {
             <>
               <button
                 onClick={() => handleApprove(item)}
-                className="px-3 py-1 rounded-xl bg-secondary text-white font-bold text-xs hover:bg-secondary/90 transition shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95"
+                className="px-3 py-1.5 rounded-xl bg-secondary text-white font-bold text-xs hover:bg-secondary/90 transition shadow-2xs flex items-center gap-1 cursor-pointer active:scale-95"
                 title="Approve Application"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                 <span>Approve</span>
               </button>
               <button
@@ -586,17 +580,15 @@ export default function AdminPsychologistsPage() {
               setStatusFilter('all');
               setCurrentPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
-              statusFilter === 'all'
-                ? 'bg-secondary text-white shadow-2xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${statusFilter === 'all'
+              ? 'bg-secondary text-white shadow-2xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
           >
             <span>All Practitioners</span>
             <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] ${
-                statusFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
-              }`}
+              className={`px-1.5 py-0.2 rounded-full text-[10px] ${statusFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                }`}
             >
               {stats.total || paginationData.totalRecords}
             </span>
@@ -607,11 +599,10 @@ export default function AdminPsychologistsPage() {
               setStatusFilter('pending_approval');
               setCurrentPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
-              statusFilter === 'pending_approval'
-                ? 'bg-amber-500 text-white shadow-2xs'
-                : 'bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100'
-            }`}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${statusFilter === 'pending_approval'
+              ? 'bg-amber-500 text-white shadow-2xs'
+              : 'bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100'
+              }`}
           >
             <Clock className="w-3.5 h-3.5" />
             <span>Pending Approvals</span>
@@ -627,11 +618,10 @@ export default function AdminPsychologistsPage() {
               setStatusFilter('approved');
               setCurrentPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
-              statusFilter === 'approved'
-                ? 'bg-indigo-600 text-white shadow-2xs'
-                : 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100'
-            }`}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${statusFilter === 'approved'
+              ? 'bg-indigo-600 text-white shadow-2xs'
+              : 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100'
+              }`}
           >
             <Mail className="w-3.5 h-3.5" />
             <span>Invite Sent</span>
@@ -642,11 +632,10 @@ export default function AdminPsychologistsPage() {
               setStatusFilter('active');
               setCurrentPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
-              statusFilter === 'active'
-                ? 'bg-emerald-600 text-white shadow-2xs'
-                : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
-            }`}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${statusFilter === 'active'
+              ? 'bg-emerald-600 text-white shadow-2xs'
+              : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
+              }`}
           >
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Active Roster</span>
@@ -657,11 +646,10 @@ export default function AdminPsychologistsPage() {
               setStatusFilter('inactive');
               setCurrentPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
-              statusFilter === 'inactive'
-                ? 'bg-slate-700 text-white shadow-2xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${statusFilter === 'inactive'
+              ? 'bg-slate-700 text-white shadow-2xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
           >
             <span>Inactive</span>
           </button>
@@ -671,11 +659,10 @@ export default function AdminPsychologistsPage() {
               setStatusFilter('rejected');
               setCurrentPage(1);
             }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
-              statusFilter === 'rejected'
-                ? 'bg-rose-600 text-white shadow-2xs'
-                : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
-            }`}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${statusFilter === 'rejected'
+              ? 'bg-rose-600 text-white shadow-2xs'
+              : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+              }`}
           >
             <XCircle className="w-3.5 h-3.5" />
             <span>Rejected Applications</span>
@@ -689,10 +676,10 @@ export default function AdminPsychologistsPage() {
               {statusFilter === 'pending_approval'
                 ? 'Pending Approval Queue'
                 : statusFilter === 'active'
-                ? 'Active Therapists Roster'
-                : statusFilter === 'rejected'
-                ? 'Rejected Applications'
-                : 'Practitioners Directory'}
+                  ? 'Active Therapists Roster'
+                  : statusFilter === 'rejected'
+                    ? 'Rejected Applications'
+                    : 'Practitioners Directory'}
             </h2>
             <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-tertiary text-secondary border border-secondary/20">
               {paginationData.totalRecords} Records Found

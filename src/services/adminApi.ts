@@ -15,13 +15,6 @@ export interface AdminAuthResponse {
   accessToken: string;
 }
 
-export interface PendingStaffResponse {
-  success: boolean;
-  count: number;
-  pendingTherapists: UserData[];
-  pendingAdmins: UserData[];
-}
-
 export interface PaginationMetadata {
   totalRecords: number;
   totalPages: number;
@@ -79,30 +72,6 @@ export const refreshAdminApi = async (): Promise<AdminAuthResponse> => {
  */
 export const logoutAdminApi = async () => {
   const response = await apiClient.post('/api/admin/auth/logout');
-  return response.data;
-};
-
-/**
- * Get pending staff applications (Therapists, Admins)
- */
-export const getPendingStaffApi = async (): Promise<PendingStaffResponse> => {
-  const response = await apiClient.get<PendingStaffResponse>('/api/admin/staff/pending');
-  return response.data;
-};
-
-/**
- * Approve pending staff/admin
- */
-export const approveStaffApi = async (id: string) => {
-  const response = await apiClient.patch(`/api/admin/staff/${id}/approve`);
-  return response.data;
-};
-
-/**
- * Reject pending staff/admin
- */
-export const rejectStaffApi = async (id: string) => {
-  const response = await apiClient.patch(`/api/admin/staff/${id}/reject`);
   return response.data;
 };
 

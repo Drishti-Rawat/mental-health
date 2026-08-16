@@ -1,10 +1,12 @@
 import apiClient from './apiClient';
 
+export type UserRole = 'user' | 'therapist' | 'admin' | 'supervisor' | 'superadmin';
+
 export interface UserData {
   id: string;
   name: string;
   email: string;
-  role: 'user' | 'therapist' | 'admin' | 'supervisor' | 'superadmin' | string;
+  role: UserRole;
   status: 'active' | 'pending_approval' | 'approved' | 'inactive' | 'rejected' | string;
   createdAt?: string;
 }
