@@ -135,10 +135,10 @@ function SetPasswordContent() {
               </div>
 
               <button
-                onClick={() => router.push('/login')}
+                onClick={() => router.push('/therapist/login')}
                 className="w-full py-3 px-4 rounded-xl bg-secondary text-white font-bold text-xs shadow-md hover:bg-secondary/90 transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>Proceed to Login</span>
+                <span>Proceed to Therapist Login</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -148,16 +148,16 @@ function SetPasswordContent() {
                 <AlertCircle className="w-8 h-8" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-lg font-bold text-foreground">Invalid or Expired Link</h3>
+                <h3 className="text-lg font-bold text-foreground font-serif">Invalid or Expired Link</h3>
                 <p className="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
-                  {errorMessage || 'This magic invitation link is invalid or has expired. Magic links expire after 7 days for security reasons.'}
+                  {errorMessage || 'This invitation token link is invalid or has expired.'}
                 </p>
               </div>
               <button
-                onClick={() => router.push('/login')}
+                onClick={() => router.push('/therapist/login')}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition cursor-pointer"
               >
-                Return to Login Page
+                Return to Therapist Login
               </button>
             </div>
           ) : (
