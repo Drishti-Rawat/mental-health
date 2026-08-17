@@ -71,12 +71,12 @@ export default function LoginPage() {
 
   return (
     <AuthLayout
-      badge="Patient Portal"
+      badge="Client Portal"
       badgeIcon={UserCheck}
       panelTitle="Your Journey to Peace of Mind Begins Here"
       panelDescription="Access expert mental health consultations, track your wellness progress, and book confidential therapy sessions with licensed professionals."
       features={[
-        'Encrypted Patient Data Privacy',
+        'Encrypted Client Data Privacy',
         'Licensed CBT & Mindfulness Specialists',
         'Flexible Online Session Booking',
       ]}

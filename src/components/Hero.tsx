@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Video, Phone, User, CalendarDays, Search, ShieldCheck, HeartHandshake, Sparkles } from "lucide-react";
 import Link from "next/link";
 import SupportCard from "./SupportCard";
+import TrustPillBadge from "./common/TrustPillBadge";
 
 export default function Hero() {
   return (
@@ -13,21 +14,8 @@ export default function Hero() {
           {/* Left Column: Text Content */}
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left max-w-2xl mx-auto lg:mx-0 relative z-10 pb-6 sm:pb-10 lg:pb-24">
 
-            {/* Trust Badge */}
-            <div className="inline-flex flex-wrap bg-white items-center justify-center lg:justify-start gap-2.5 sm:gap-4 rounded-full py-1.5 sm:py-2 px-3.5 sm:px-4 pr-4 sm:pr-6 mb-6 sm:mb-8 shadow-sm border border-black/5">
-              <div className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-secondary whitespace-nowrap">
-                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                <span>Trusted by 10,000+ individuals</span>
-              </div>
-              <div className="flex -space-x-2.5 sm:-space-x-3 shrink-0">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-gray-200"></div>
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-gray-300"></div>
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-gray-400"></div>
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-primary"></div>
-              </div>
-            </div>
+            {/* Reusable Trust Pill Badge */}
+            <TrustPillBadge className="mb-6 sm:mb-8" />
 
             {/* Main Heading */}
             <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-primary leading-[1.15] tracking-tight mb-4 sm:mb-6">

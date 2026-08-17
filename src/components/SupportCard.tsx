@@ -1,3 +1,5 @@
+import AvatarGroup from "./common/AvatarGroup";
+
 interface SupportCardProps {
   className?: string;
 }
@@ -19,13 +21,8 @@ export default function SupportCard({ className = "" }: SupportCardProps) {
         </div>
       </div>
 
-      {/* Avatars */}
-      <div className="flex -space-x-2">
-        <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-200"></div>
-        <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-300"></div>
-        <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-400"></div>
-        <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-500"></div>
-      </div>
+      {/* Reusable Avatars Stack */}
+      <AvatarGroup size="md" />
 
       <p className="text-[11px] text-foreground/50 mt-3">Typically replies in a few minutes</p>
     </div>

@@ -122,7 +122,7 @@ export default function Header({
           {/* Public Pages: Show 'Book Session' button on desktop md+ screens */}
           {isPublicPage && (
             <Link
-              href="/patient/book"
+              href="/book"
               className="hidden md:flex h-11 items-center justify-center gap-2 rounded-full bg-primary px-6 text-sm font-medium text-white transition-colors hover:bg-secondary shadow-xs"
             >
               <CalendarDays className="h-4 w-4" />
@@ -204,7 +204,7 @@ export default function Header({
           <div className="pt-2 space-y-2">
             {isPublicPage && (
               <Link
-                href="/patient/book"
+                href="/book"
                 onClick={() => setIsMenuOpen(false)}
                 className="flex w-full h-12 items-center justify-center gap-2 rounded-full bg-primary px-6 text-base font-semibold text-white hover:bg-secondary transition-colors shadow-sm"
               >
