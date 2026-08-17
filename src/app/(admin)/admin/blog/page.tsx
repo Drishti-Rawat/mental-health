@@ -15,7 +15,6 @@ import {
   CheckCircle2, 
   X, 
   Image as ImageIcon,
-  TrendingUp,
   Tag
 } from 'lucide-react';
 import { 
@@ -221,13 +220,6 @@ export default function AdminBlogPage() {
       icon: Clock,
       iconBg: 'bg-amber-50 text-amber-800 border-amber-200',
     },
-    {
-      title: 'Total Views',
-      value: stats.totalViews,
-      subtitle: 'Combined readers count',
-      icon: TrendingUp,
-      iconBg: 'bg-teal-50 text-teal-700 border-teal-200',
-    },
   ];
 
   return (
@@ -260,7 +252,7 @@ export default function AdminBlogPage() {
       </div>
 
       {/* Stat Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4">
         {statCards.map((card, idx) => {
           const IconComponent = card.icon;
           return (
@@ -402,10 +394,6 @@ export default function AdminBlogPage() {
 
                     <div className="flex items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-100 font-medium">
                       <span>{b.readTime || 5} min read</span>
-                      <span className="flex items-center gap-1 text-slate-500">
-                        <Eye className="w-3 h-3 text-slate-400" />
-                        {b.views || 0} views
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -684,8 +672,6 @@ export default function AdminBlogPage() {
                 <span>By {previewBlog.author}</span>
                 <span>•</span>
                 <span>{previewBlog.readTime} min read</span>
-                <span>•</span>
-                <span>{previewBlog.views} views</span>
               </div>
 
               {previewBlog.coverImage && (

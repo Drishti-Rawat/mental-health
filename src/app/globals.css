@@ -55,3 +55,22 @@ body {
 .animate-fade-in-up {
   animation: fadeInUp 0.7s ease-out forwards;
 }
+
+@keyframes smoothMarquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-smooth-marquee {
+  display: flex;
+  width: max-content;
+  animation: smoothMarquee 35s linear infinite;
+}
+
+.animate-smooth-marquee:hover {
+  animation-play-state: paused;
+}

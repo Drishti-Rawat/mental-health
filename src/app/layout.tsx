@@ -29,8 +29,9 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${cormorant.variable} ${manrope.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col font-sans">
+      <body className="min-h-full flex flex-col font-sans" suppressHydrationWarning>
         <AuthProvider>
           <Header />
           <main className="flex-1 flex flex-col">{children}</main>
