@@ -23,7 +23,9 @@ import {
   Briefcase,
   Users,
   MessageSquare,
-  HelpCircle
+  HelpCircle,
+  SlidersHorizontal,
+  RotateCcw
 } from "lucide-react";
 import Footer from "@/components/layout/Footer";
 import TherapistCard from "@/components/common/TherapistCard";
@@ -54,6 +56,25 @@ const SPECIALIZATION_OPTIONS = [
   "Clinical Psychologist",
   "Consultant Psychologist",
   "Counselling Psychologist",
+];
+
+const ISSUE_OPTIONS = [
+  "All Issues",
+  "Anxiety",
+  "Depression",
+  "Relationship",
+  "Child Therapy",
+  "Trauma",
+  "Stress Management",
+  "Self-Esteem",
+];
+
+const SESSION_TYPES = [
+  "Session Type",
+  "Individual Therapy",
+  "Couples Therapy",
+  "Online Consultation",
+  "In-Person Session",
 ];
 
 const LANGUAGES_LIST = [
@@ -95,19 +116,47 @@ export default function PsychologistsPage() {
   // Filters state
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSpec, setSelectedSpec] = useState("All Specializations");
+  const [selectedIssue, setSelectedIssue] = useState("All Issues");
+  const [selectedSessionType, setSelectedSessionType] = useState("Session Type");
   const [selectedLang, setSelectedLang] = useState("Language");
   const [sortOption, setSortOption] = useState("Experience: High to Low");
+
+  // Mobile Filter Drawer State
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   // Guest Login Prompt Modal State
   const [selectedTherapistForBooking, setSelectedTherapistForBooking] = useState<PsychologistData | null>(null);
 
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (selectedSpec !== "All Specializations") count++;
+    if (selectedIssue !== "All Issues") count++;
+    if (selectedSessionType !== "Session Type") count++;
+    if (selectedLang !== "Language") count++;
+    if (searchQuery.trim()) count++;
+    return count;
+  }, [selectedSpec, selectedIssue, selectedSessionType, selectedLang, searchQuery]);
+
+  const clearAllFilters = () => {
+    setSearchQuery("");
+    setSelectedSpec("All Specializations");
+    setSelectedIssue("All Issues");
+    setSelectedSessionType("Session Type");
+    setSelectedLang("Language");
+  };
+
   const fetchPsychologists = async () => {
     setLoading(true);
     try {
-      const activeSpecialty = selectedSpec !== "All Specializations" ? selectedSpec : undefined;
+      const activeSpecialty =
+        selectedIssue !== "All Issues"
+          ? selectedIssue
+          : selectedSpec !== "All Specializations"
+            ? selectedSpec
+            : undefined;
 
       const res = await getPsychologistsApi({
-        limit: 50,
+        limit: 10,
         search: searchQuery.trim() || undefined,
         specialty: activeSpecialty,
       });
@@ -127,7 +176,7 @@ export default function PsychologistsPage() {
 
   useEffect(() => {
     fetchPsychologists();
-  }, [searchQuery, selectedSpec]);
+  }, [searchQuery, selectedIssue, selectedSpec]);
 
   const handleBookClick = (therapist: PsychologistData) => {
     if (!user) {
@@ -152,13 +201,21 @@ export default function PsychologistsPage() {
         if (!matchesName && !matchesTitle && !matchesSpec) return false;
       }
 
-      // Specialization filter (Matches against specialties array or title)
+      // Specialization filter
       if (selectedSpec !== "All Specializations") {
         const specQ = selectedSpec.toLowerCase();
         const specsArr = Array.isArray(p.specialties) ? p.specialties : [];
         const matchesSpec = specsArr.some(s => s.toLowerCase().includes(specQ));
         const matchesTitle = p.title?.toLowerCase().includes(specQ);
         if (!matchesSpec && !matchesTitle) return false;
+      }
+
+      // Issue filter
+      if (selectedIssue !== "All Issues") {
+        const issueQ = selectedIssue.toLowerCase();
+        const specsArr = Array.isArray(p.specialties) ? p.specialties : [];
+        const matchesSpec = specsArr.some(s => s.toLowerCase().includes(issueQ));
+        if (!matchesSpec) return false;
       }
 
       // Language filter
@@ -180,14 +237,14 @@ export default function PsychologistsPage() {
       }
       return 0;
     });
-  }, [psychologists, searchQuery, selectedSpec, selectedLang, sortOption]);
+  }, [psychologists, searchQuery, selectedSpec, selectedIssue, selectedLang, sortOption]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-slate-800 font-sans">
       <main className="flex-1 pb-16 space-y-12 sm:space-y-16">
 
         {/* 1. HERO SECTION */}
-        <section className="relative overflow-hidden bg-background pt-8 sm:pt-12 pb-16 sm:pb-24 min-h-[500px] sm:min-h-[560px] flex items-center">
+        <section className="relative overflow-hidden bg-background pt-8 sm:pt-12 pb-24 sm:pb-32 lg:pb-36 flex items-center">
           {/* Background Hero Photo (/about-hero.jpg) on Right */}
           <div className="absolute inset-y-0 right-0 w-full lg:w-7/12 h-full pointer-events-none z-0 overflow-hidden">
             <img
@@ -235,40 +292,17 @@ export default function PsychologistsPage() {
           </div>
         </section>
 
-        {/* 2. SEARCH & MULTI-FILTER CARD BAR */}
-        <section className="site-container">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
+        {/* 2. SEARCH & MULTI-FILTER CARD BAR (Desktop Floating Card ONLY) */}
+        <section className="site-container relative z-20 -mt-16 sm:-mt-24 lg:-mt-28 mb-8 sm:mb-12 hidden lg:block">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-100 shadow-xl space-y-6">
             {/* Filter Controls Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-center">
-              {/* Search Text Input */}
-              <div className="lg:col-span-5 relative">
-                <input
-                  type="text"
-                  placeholder="Search therapist name or specialty..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") fetchPsychologists();
-                  }}
-                  className="w-full h-11 pl-10 pr-8 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:border-secondary transition placeholder:text-slate-400"
-                />
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-
+            <div className="grid grid-cols-12 gap-3.5 items-center">
               {/* Specialization Select */}
-              <div className="lg:col-span-3 relative">
+              <div className="col-span-3 relative">
                 <select
                   value={selectedSpec}
                   onChange={(e) => setSelectedSpec(e.target.value)}
-                  className="w-full h-11 px-4 pr-9 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 appearance-none focus:outline-none focus:border-secondary cursor-pointer"
+                  className="w-full h-11 px-4 pr-9 rounded-2xl bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-700 appearance-none focus:outline-none focus:border-secondary cursor-pointer shadow-2xs"
                 >
                   {SPECIALIZATION_OPTIONS.map(opt => (
                     <option key={opt} value={opt}>{opt}</option>
@@ -277,12 +311,40 @@ export default function PsychologistsPage() {
                 <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
 
+              {/* Issues Select */}
+              <div className="col-span-3 relative">
+                <select
+                  value={selectedIssue}
+                  onChange={(e) => setSelectedIssue(e.target.value)}
+                  className="w-full h-11 px-4 pr-9 rounded-2xl bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-700 appearance-none focus:outline-none focus:border-secondary cursor-pointer shadow-2xs"
+                >
+                  {ISSUE_OPTIONS.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+
+              {/* Session Type Select */}
+              <div className="col-span-2 relative">
+                <select
+                  value={selectedSessionType}
+                  onChange={(e) => setSelectedSessionType(e.target.value)}
+                  className="w-full h-11 px-4 pr-9 rounded-2xl bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-700 appearance-none focus:outline-none focus:border-secondary cursor-pointer shadow-2xs"
+                >
+                  {SESSION_TYPES.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
+
               {/* Language Select */}
-              <div className="lg:col-span-2 relative">
+              <div className="col-span-2 relative">
                 <select
                   value={selectedLang}
                   onChange={(e) => setSelectedLang(e.target.value)}
-                  className="w-full h-11 px-4 pr-9 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 appearance-none focus:outline-none focus:border-secondary cursor-pointer"
+                  className="w-full h-11 px-4 pr-9 rounded-2xl bg-white border border-slate-200 text-xs sm:text-sm font-semibold text-slate-700 appearance-none focus:outline-none focus:border-secondary cursor-pointer shadow-2xs"
                 >
                   {LANGUAGES_LIST.map(opt => (
                     <option key={opt} value={opt}>{opt}</option>
@@ -292,10 +354,10 @@ export default function PsychologistsPage() {
               </div>
 
               {/* Search Button */}
-              <div className="lg:col-span-2">
+              <div className="col-span-2">
                 <button
                   onClick={() => fetchPsychologists()}
-                  className="w-full h-11 rounded-2xl bg-primary hover:bg-secondary text-white font-semibold text-xs transition shadow-xs cursor-pointer flex items-center justify-center gap-2"
+                  className="w-full h-11 rounded-2xl bg-primary hover:bg-secondary text-white font-semibold text-xs sm:text-sm transition shadow-md cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Search className="w-4 h-4 text-tertiary" />
                   <span>Search</span>
@@ -304,18 +366,22 @@ export default function PsychologistsPage() {
             </div>
 
             {/* Popular Searches Quick Filter Tags */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
-              <span className="text-xs font-bold text-slate-500 mr-2">Popular Searches:</span>
+            <div className="flex flex-wrap items-center gap-2.5 pt-2 border-t border-slate-100">
+              <span className="text-xs sm:text-sm font-bold text-secondary mr-2">Popular Searches:</span>
               {POPULAR_SEARCHES.map((tag) => {
-                const isActive = selectedSpec === tag;
+                const isActive = selectedIssue === tag || selectedSpec === tag;
                 return (
                   <button
                     key={tag}
-                    onClick={() => setSelectedSpec(isActive ? "All Specializations" : tag)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer border ${isActive
-                      ? "bg-secondary text-white border-secondary"
-                      : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-                      }`}
+                    onClick={() => {
+                      setSelectedIssue(isActive ? "All Issues" : tag);
+                      setSelectedSpec(isActive ? "All Specializations" : tag);
+                    }}
+                    className={`px-4 py-2 rounded-full text-xs font-medium transition cursor-pointer ${
+                      isActive
+                        ? "bg-secondary text-white shadow-xs"
+                        : "bg-slate-100/80 text-slate-700 hover:bg-slate-200/80"
+                    }`}
                   >
                     {tag}
                   </button>
@@ -326,28 +392,46 @@ export default function PsychologistsPage() {
         </section>
 
         {/* 3. MAIN THERAPISTS DIRECTORY GRID */}
-        <section className="site-container space-y-6">
+        <section className="site-container space-y-6 pt-4 lg:pt-0">
           {/* Header Row */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4">
+            {/* Title */}
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-primary">
               Meet Our Therapists
             </h2>
 
-            {/* Sort Dropdown */}
-            <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
-              <span>Sort by:</span>
-              <div className="relative">
-                <select
-                  value={sortOption}
-                  onChange={(e) => setSortOption(e.target.value)}
-                  className="h-9 px-3 pr-8 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 appearance-none focus:outline-none focus:border-secondary cursor-pointer shadow-2xs"
-                >
-                  <option value="Experience: High to Low">Experience: High to Low</option>
-                  <option value="Experience: Low to High">Experience: Low to High</option>
-                  <option value="Rating: High to Low">Rating: High to Low</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            {/* Controls Bar Below Title on Mobile */}
+            <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+              {/* Sort Dropdown (Left on mobile) */}
+              <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                <span>Sort by:</span>
+                <div className="relative">
+                  <select
+                    value={sortOption}
+                    onChange={(e) => setSortOption(e.target.value)}
+                    className="h-9 px-3 pr-8 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-800 appearance-none focus:outline-none focus:border-secondary cursor-pointer shadow-2xs"
+                  >
+                    <option value="Experience: High to Low">Experience: High to Low</option>
+                    <option value="Experience: Low to High">Experience: Low to High</option>
+                    <option value="Rating: High to Low">Rating: High to Low</option>
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
               </div>
+
+              {/* Mobile Filter Button (Right on mobile) */}
+              <button
+                onClick={() => setIsMobileFilterOpen(true)}
+                className="lg:hidden h-9 px-4 rounded-xl bg-primary hover:bg-secondary text-white font-semibold text-xs transition shadow-2xs flex items-center justify-center gap-2 cursor-pointer shrink-0"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 text-tertiary" />
+                <span>Filter</span>
+                {activeFilterCount > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-tertiary text-primary font-bold text-[10px] flex items-center justify-center">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
 
@@ -364,11 +448,7 @@ export default function PsychologistsPage() {
                 No specialists matched your current filter criteria.
               </p>
               <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedSpec("All Specializations");
-                  setSelectedLang("Language");
-                }}
+                onClick={clearAllFilters}
                 className="px-5 py-2.5 rounded-full bg-primary text-white text-xs font-semibold hover:bg-secondary transition shadow-xs cursor-pointer"
               >
                 Clear All Filters
@@ -539,6 +619,164 @@ export default function PsychologistsPage() {
         </section>
 
       </main>
+
+      {/* MOBILE FILTER BOTTOM SHEET DRAWER MODAL */}
+      {isMobileFilterOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex flex-col justify-end lg:hidden">
+          {/* Backdrop Click to Close */}
+          <div
+            className="flex-1"
+            onClick={() => setIsMobileFilterOpen(false)}
+          />
+
+          {/* Bottom Sheet Drawer */}
+          <div className="bg-white rounded-t-3xl p-6 space-y-6 shadow-2xl border-t border-slate-200 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-200">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-5 h-5 text-secondary" />
+                <h3 className="font-serif font-bold text-slate-900 text-lg">Filter Therapists</h3>
+                {activeFilterCount > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-tertiary text-secondary font-bold text-xs">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                {activeFilterCount > 0 && (
+                  <button
+                    onClick={clearAllFilters}
+                    className="text-xs font-semibold text-secondary hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Reset</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setIsMobileFilterOpen(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Fields */}
+            <div className="space-y-4">
+              {/* Specialization Select */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Specialization</label>
+                <div className="relative">
+                  <select
+                    value={selectedSpec}
+                    onChange={(e) => setSelectedSpec(e.target.value)}
+                    className="w-full h-11 px-4 pr-9 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 appearance-none focus:outline-none focus:border-secondary cursor-pointer"
+                  >
+                    {SPECIALIZATION_OPTIONS.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Issue / Specialty Select */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Issue / Concern</label>
+                <div className="relative">
+                  <select
+                    value={selectedIssue}
+                    onChange={(e) => setSelectedIssue(e.target.value)}
+                    className="w-full h-11 px-4 pr-9 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 appearance-none focus:outline-none focus:border-secondary cursor-pointer"
+                  >
+                    {ISSUE_OPTIONS.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Session Type Select */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Session Type</label>
+                <div className="relative">
+                  <select
+                    value={selectedSessionType}
+                    onChange={(e) => setSelectedSessionType(e.target.value)}
+                    className="w-full h-11 px-4 pr-9 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 appearance-none focus:outline-none focus:border-secondary cursor-pointer"
+                  >
+                    {SESSION_TYPES.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Language Select */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">Language</label>
+                <div className="relative">
+                  <select
+                    value={selectedLang}
+                    onChange={(e) => setSelectedLang(e.target.value)}
+                    className="w-full h-11 px-4 pr-9 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 appearance-none focus:outline-none focus:border-secondary cursor-pointer"
+                  >
+                    {LANGUAGES_LIST.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Popular Searches */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <span className="text-xs font-bold text-slate-700 block">Popular Searches:</span>
+                <div className="flex flex-wrap gap-2">
+                  {POPULAR_SEARCHES.map((tag) => {
+                    const isActive = selectedIssue === tag || selectedSpec === tag;
+                    return (
+                      <button
+                        key={tag}
+                        onClick={() => {
+                          setSelectedIssue(isActive ? "All Issues" : tag);
+                          setSelectedSpec(isActive ? "All Specializations" : tag);
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ${
+                          isActive
+                            ? "bg-secondary text-white"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Apply Button */}
+            <div className="pt-2">
+              <button
+                onClick={() => {
+                  fetchPsychologists();
+                  setIsMobileFilterOpen(false);
+                }}
+                className="w-full py-3.5 rounded-full bg-primary hover:bg-secondary text-white font-bold text-xs sm:text-sm transition shadow-md cursor-pointer flex items-center justify-center gap-2"
+              >
+                <span>Apply Filters ({filteredTherapists.length} Therapists)</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* Guest Login Prompt Modal */}
       {selectedTherapistForBooking && (

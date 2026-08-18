@@ -20,14 +20,8 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
         // Unauthenticated -> Redirect to login page
         router.push('/login');
       } else if (allowedRoles && !allowedRoles.includes(user.role)) {
-        // Authenticated but unauthorized role -> Redirect to appropriate dashboard
-        if (user.role === 'therapist') {
-          router.push('/therapist/dashboard');
-        } else if (['admin', 'supervisor', 'superadmin'].includes(user.role)) {
-          router.push('/admin/dashboard');
-        } else {
-          router.push('/dashboard');
-        }
+        // Authenticated but unauthorized for this specific page -> Redirect to login
+        router.push('/login');
       }
     }
   }, [user, loading, allowedRoles, router]);

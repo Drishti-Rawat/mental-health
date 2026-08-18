@@ -125,7 +125,7 @@ export default function AboutPage() {
       <main className="flex-1 pb-16 space-y-20 sm:space-y-28">
 
         {/* 1. HERO SECTION */}
-        <section className="relative bg-background pt-8 sm:pt-12 pb-16 sm:pb-24 min-h-[480px] sm:min-h-[520px] flex items-center">
+        <section className="relative bg-background pt-8 sm:pt-12 pb-24 sm:pb-28 lg:pb-24 min-h-[500px] sm:min-h-[560px] flex items-center">
           {/* Background Hero Photo (/about-hero.jpg) on Right */}
           <div className="absolute inset-y-0 right-0 w-full lg:w-7/12 h-full pointer-events-none z-0 overflow-hidden">
             <img
@@ -150,7 +150,7 @@ export default function AboutPage() {
               </p>
 
               {/* 4 Feature Badges Pill Bar (Using Theme Colors) */}
-              <div className="inline-flex flex-wrap lg:flex-nowrap items-center gap-4 sm:gap-6 px-6 py-4 sm:py-10 rounded-4xl bg-tertiary/60  shadow-2xs">
+              <div className="inline-flex flex-wrap lg:flex-nowrap items-center gap-4 sm:gap-6 px-6 py-4 sm:py-10 rounded-4xl bg-tertiary/60 shadow-2xs">
                 {FEATURE_BADGES.map((badge, idx) => {
                   const IconComp = badge.icon;
                   return (
@@ -174,9 +174,9 @@ export default function AboutPage() {
           </div>
 
           {/* Floating Quote Box */}
-          <div className="absolute -bottom-10 sm:-bottom-14 lg:-bottom-16 right-4 sm:right-10 lg:right-20 z-20 max-w-sm">
-            <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-100 space-y-2">
-              <span className="text-3xl text-secondary font-serif leading-none block">“</span>
+          <div className="absolute -bottom-16 sm:-bottom-14 lg:-bottom-16 right-4 sm:right-10 lg:right-20 z-20 max-w-[300px] sm:max-w-sm">
+            <div className="bg-white rounded-3xl p-5 sm:p-7 shadow-2xl border border-slate-100 space-y-1.5 sm:space-y-2">
+              <span className="text-2xl sm:text-3xl text-secondary font-serif leading-none block">“</span>
               <p className="text-xs sm:text-sm text-slate-700 italic font-medium leading-relaxed">
                 Our mission is to create a safe space where healing begins, hope grows, and lives transform.
               </p>
@@ -235,23 +235,23 @@ export default function AboutPage() {
 
         {/* 3. KEY STATS BAR */}
         <section className="site-container">
-          <div className="bg-tertiary  rounded-3xl p-6 sm:p-8">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-4 divide-y sm:divide-y-0 sm:divide-x divide-secondary/20">
+          <div className="bg-tertiary rounded-3xl p-6 sm:p-8 shadow-2xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-y-6 gap-x-4 lg:divide-x lg:divide-secondary/20">
               {STATS.map((stat, i) => {
                 const IconComp = stat.icon;
                 return (
                   <div
                     key={i}
-                    className={`flex items-center gap-3.5 ${i > 0 ? "pt-4 sm:pt-0 sm:pl-4" : ""}`}
+                    className={`flex items-center gap-3 ${i > 0 ? "lg:pl-6" : ""}`}
                   >
-                    <div className="w-11 h-11 rounded-2xl bg-white text-secondary flex items-center justify-center shrink-0 border border-secondary/15 shadow-2xs">
+                    <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-white text-secondary flex items-center justify-center shrink-0 border border-secondary/15 shadow-2xs">
                       <IconComp className="w-5 h-5" />
                     </div>
                     <div>
                       <h3 className="text-xl sm:text-2xl font-bold font-serif text-primary leading-none">
                         {stat.value}
                       </h3>
-                      <p className="text-[11px] font-semibold text-slate-500 mt-1">
+                      <p className="text-[11px] sm:text-xs font-semibold text-slate-600 mt-1 leading-tight">
                         {stat.label}
                       </p>
                     </div>
@@ -345,9 +345,9 @@ export default function AboutPage() {
 
         {/* 6. BOTTOM BANNER CTA */}
         <section className="site-container">
-          <div className="bg-primary text-white rounded-3xl p-8 sm:p-10 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
+          <div className="bg-primary text-white rounded-3xl p-6 sm:p-10 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-6 relative overflow-hidden text-center lg:text-left">
             {/* Left Content */}
-            <div className="flex items-center gap-4 text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
               <div className="w-12 h-12 rounded-2xl bg-white/10 text-tertiary flex items-center justify-center shrink-0 border border-white/15">
                 <Mail className="w-6 h-6" />
               </div>
@@ -362,10 +362,10 @@ export default function AboutPage() {
             </div>
 
             {/* Right Button */}
-            <div className="shrink-0">
+            <div className="shrink-0 w-full sm:w-auto">
               <Link
                 href="/book"
-                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-white text-primary hover:bg-slate-100 font-semibold text-xs sm:text-sm transition shadow-sm cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full bg-white text-primary hover:bg-slate-100 font-semibold text-xs sm:text-sm transition shadow-sm cursor-pointer w-full sm:w-auto"
               >
                 <span>Book Your Session</span>
                 <ArrowRight className="w-4 h-4 text-primary" />
