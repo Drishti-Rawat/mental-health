@@ -6,6 +6,7 @@ import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
 import AutoScroll from "embla-carousel-auto-scroll";
 import { getPsychologistsApi, PsychologistData } from "@/services/psychologistApi";
+import TherapistCard from "@/components/common/TherapistCard";
 
 export default function Therapists() {
   const [therapists, setTherapists] = useState<any[]>([]);
@@ -105,34 +106,7 @@ export default function Therapists() {
           <div className="flex -ml-4 py-2">
             {displayTherapists.map((therapist, index) => (
               <div key={`${therapist.id}-${index}`} className="flex-[0_0_85%] sm:flex-[0_0_48%] md:flex-[0_0_33.33%] lg:flex-[0_0_25%] xl:flex-[0_0_20%] min-w-0 pl-4">
-                <div className="bg-white rounded-2xl shadow-xs border border-black/5 overflow-hidden flex flex-col h-full group transition-transform duration-300 hover:-translate-y-1 hover:shadow-md">
-                  <div className="w-full h-[180px] bg-gradient-to-br from-gray-200 to-gray-300 relative overflow-hidden shrink-0">
-                    <Image
-                      src={therapist.image || '/therapist.png'}
-                      alt={therapist.name}
-                      fill
-                      unoptimized
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <div className="p-5 flex flex-col flex-grow">
-                    <h3 className="font-bold text-base md:text-lg text-secondary mb-0.5">{therapist.name}</h3>
-                    <p className="text-xs text-foreground/60 mb-3">{therapist.role}</p>
-
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Award className="w-3.5 h-3.5 text-secondary" />
-                      <span className="text-xs font-semibold text-foreground/70">{therapist.experience}</span>
-                    </div>
-
-                    <p className="text-xs text-foreground/50 mb-5 flex-grow leading-relaxed line-clamp-2">
-                      {therapist.specialties}
-                    </p>
-
-                    <Link href={`/patient/book?therapistId=${therapist.id}`} className="w-full bg-secondary text-white font-semibold py-2.5 rounded-xl text-sm hover:bg-secondary/90 transition-colors shadow-xs mt-auto cursor-pointer text-center block">
-                      Book a Session
-                    </Link>
-                  </div>
-                </div>
+                <TherapistCard therapist={therapist} buttonText="Book a Session" className="h-full" />
               </div>
             ))}
           </div>

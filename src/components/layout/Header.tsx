@@ -119,30 +119,30 @@ export default function Header({
             </button>
           )}
 
-          {/* Public Pages: Show 'Book Session' button on desktop md+ screens */}
+          {/* Public Pages: Show 'Book a Session' button */}
           {isPublicPage && (
             <Link
               href="/book"
-              className="hidden md:flex h-11 items-center justify-center gap-2 rounded-full bg-primary px-6 text-sm font-medium text-white transition-colors hover:bg-secondary shadow-xs"
+              className="hidden sm:flex h-10 sm:h-11 items-center justify-center gap-2 rounded-full bg-primary hover:bg-secondary px-5 sm:px-6 text-xs sm:text-sm font-semibold text-white transition-colors shadow-xs"
             >
-              <CalendarDays className="h-4 w-4" />
-              Book Session
+              <CalendarDays className="h-4 w-4 text-tertiary" />
+              <span>Book a Session</span>
             </Link>
           )}
 
-          {/* User Avatar with Dropdown when logged in */}
-          {user && (
+          {/* User Avatar with Dropdown when logged in (Only shown on Dashboard routes) */}
+          {isDashboardRoute && user && (
             <div className="relative">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="flex items-center gap-2.5 p-1 hover:opacity-80 transition cursor-pointer focus:outline-none"
               >
-                <div className="w-8 h-8 rounded-full bg-secondary/10 text-secondary font-bold text-xs flex items-center justify-center border border-secondary/20 shrink-0">
+                <div className="w-8 h-8 rounded-full bg-[#0A4D34]/10 text-[#0A4D34] font-bold text-xs flex items-center justify-center border border-[#0A4D34]/20 shrink-0">
                   {user.name?.charAt(0).toUpperCase() || "U"}
                 </div>
-                <div className="text-left">
-                  <div className="text-xs font-bold text-foreground leading-tight">{user.name}</div>
-                  <div className="text-[10px] text-secondary capitalize leading-tight">{user.role}</div>
+                <div className="text-left hidden sm:block">
+                  <div className="text-xs font-bold text-slate-900 leading-tight">{user.name}</div>
+                  <div className="text-[10px] text-[#0A4D34] capitalize leading-tight">{user.role}</div>
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               </button>
@@ -165,11 +165,11 @@ export default function Header({
             </div>
           )}
 
-          {/* Mobile menu toggle: Render ONLY if navigation links exist */}
+          {/* Mobile menu toggle */}
           {activeNavLinks.length > 0 && (
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 text-foreground/80 hover:text-primary rounded-lg focus:outline-none cursor-pointer"
+              className="md:hidden p-2 text-slate-700 hover:text-[#0E2F29] rounded-lg focus:outline-none cursor-pointer"
               aria-label="Toggle Navigation Menu"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -180,7 +180,7 @@ export default function Header({
 
       {/* Mobile Drawer Menu */}
       {isMenuOpen && activeNavLinks.length > 0 && (
-        <div className="md:hidden bg-white border-b border-black/5 px-6 py-6 space-y-4 shadow-lg animate-fade-in-up">
+        <div className="md:hidden bg-white border-b border-slate-200/80 px-6 py-6 space-y-4 shadow-lg animate-fade-in-up">
           <nav className="flex flex-col space-y-3">
             {activeNavLinks.map((link) => {
               const isActive = pathname === link.href;
@@ -189,10 +189,10 @@ export default function Header({
                   key={link.name}
                   href={link.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`text-base py-2 transition-colors border-b border-black/[0.03] ${
+                  className={`text-base py-2 transition-colors border-b border-slate-100 ${
                     isActive
-                      ? "font-bold text-secondary"
-                      : "font-medium text-foreground/90 hover:text-secondary"
+                      ? "font-bold text-[#0A4D34]"
+                      : "font-medium text-slate-800 hover:text-[#0A4D34]"
                   }`}
                 >
                   {link.name}
@@ -208,11 +208,11 @@ export default function Header({
                 onClick={() => setIsMenuOpen(false)}
                 className="flex w-full h-12 items-center justify-center gap-2 rounded-full bg-primary px-6 text-base font-semibold text-white hover:bg-secondary transition-colors shadow-sm"
               >
-                <CalendarDays className="h-5 w-5" />
-                Book Session
+                <CalendarDays className="h-5 w-5 text-tertiary" />
+                Book a Session
               </Link>
             )}
-            {user && (
+            {isDashboardRoute && user && (
               <button
                 onClick={() => {
                   logout();
