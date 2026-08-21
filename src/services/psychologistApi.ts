@@ -15,6 +15,7 @@ export interface PsychologistData {
   bio?: string;
   image?: string;
   languages?: string[];
+  availableSlots?: string[];
   rating?: number;
   reviewCount?: number;
   status: 'pending_approval' | 'approved' | 'active' | 'inactive' | 'rejected' | string;

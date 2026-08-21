@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
@@ -21,15 +21,17 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // If already logged in, smart redirect based on role
-  if (user) {
-    if (user.role === 'therapist') {
-      router.push('/therapist/dashboard');
-    } else if (['admin', 'supervisor', 'superadmin'].includes(user.role)) {
-      router.push('/admin/dashboard');
-    } else {
-      router.push('/dashboard');
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'therapist') {
+        router.push('/therapist/dashboard');
+      } else if (['admin', 'supervisor', 'superadmin'].includes(user.role)) {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
     }
-  }
+  }, [user, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

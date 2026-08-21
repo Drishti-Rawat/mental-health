@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ShieldCheck, ArrowRight, AlertCircle, Mail, Lock, Eye, EyeOff, ShieldAlert } from 'lucide-react';
@@ -21,9 +21,11 @@ export default function AdminLoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // If already logged in as approved Admin/Staff, auto-redirect to admin dashboard
-  if (user && ['admin', 'supervisor', 'superadmin'].includes(user.role)) {
-    router.push('/admin/dashboard');
-  }
+  useEffect(() => {
+    if (user && ['admin', 'supervisor', 'superadmin'].includes(user.role)) {
+      router.push('/admin/dashboard');
+    }
+  }, [user, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

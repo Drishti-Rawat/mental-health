@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
@@ -21,9 +21,11 @@ export default function TherapistLoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // If already logged in as therapist, redirect to therapist dashboard
-  if (user && user.role === "therapist") {
-    router.push("/therapist/dashboard");
-  }
+  useEffect(() => {
+    if (user && user.role === 'therapist') {
+      router.push('/therapist/dashboard');
+    }
+  }, [user, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -61,17 +63,17 @@ export default function TherapistLoginPage() {
 
   return (
     <AuthLayout
-      badge="Practitioner Portal"
+      badge="Therapist Portal"
       badgeIcon={Stethoscope}
-      panelTitle="Manage Your Practice & Deliver Impactful Care"
-      panelDescription="Access your therapist dashboard, view upcoming client consultations, set flexible session schedules, and manage clinical care records securely."
+      panelTitle="Therapist Care Portal"
+      panelDescription="Manage client consultations, session schedules, and patient records securely."
       features={[
-        "HIPAA & Confidentiality Encrypted Care",
-        "Direct Client Appointments & Calendar Sync",
-        "Seamless Session Notes & Client Tracking",
+        '100% Confidential & Encrypted Care',
+        'Direct Client Bookings & Calendar Sync',
+        'Easy Consultation Records Management',
       ]}
       formTitle="Therapist Sign In"
-      formSubtitle="Enter your credentials to access your clinical portal"
+      formSubtitle="Enter your email and password to access your therapist console"
     >
       {error && (
         <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-rose-800 text-xs sm:text-sm animate-in fade-in duration-200">

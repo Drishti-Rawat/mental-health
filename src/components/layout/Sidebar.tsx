@@ -62,7 +62,11 @@ export default function Sidebar({
             <nav className="p-2 sm:p-4 space-y-2 overflow-hidden">
               {items.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href || (item.href !== '/admin/dashboard' && pathname.startsWith(item.href));
+                const isActive =
+                  pathname === item.href ||
+                  (item.href !== '/admin/dashboard' &&
+                    item.href !== '/therapist/dashboard' &&
+                    pathname.startsWith(item.href));
 
                 return (
                   <Link
