@@ -203,13 +203,44 @@ export const updateBookingStatusApi = (
 };
 
 /**
+ * Helper to check if a date + time slot string is in the past
+ */
+export const isSlotInPast = (dateStr: string, slotStr: string): boolean => {
+  if (!dateStr || !slotStr) return false;
+
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
+  if (dateStr < todayStr) return true;
+  if (dateStr > todayStr) return false;
+
+  const match = slotStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+  if (!match) return false;
+
+  let [, hoursStr, minsStr, ampm] = match;
+  let hours = parseInt(hoursStr, 10);
+  const minutes = parseInt(minsStr, 10);
+
+  if (ampm) {
+    ampm = ampm.toUpperCase();
+    if (ampm === 'PM' && hours < 12) hours += 12;
+    if (ampm === 'AM' && hours === 12) hours = 0;
+  }
+
+  const slotDate = new Date(now);
+  slotDate.setHours(hours, minutes, 0, 0);
+
+  return slotDate <= now;
+};
+
+/**
  * Get available & booked time slots for a therapist on a date
  */
 export const getTherapistSlotAvailabilityApi = (
   therapistId: string,
   date: string,
   allStandardSlots: string[]
-): { slot: string; isAvailable: boolean }[] => {
+): { slot: string; isAvailable: boolean; isPast: boolean; isBooked: boolean }[] => {
   const bookings = getStoredBookings();
   const dateBookings = bookings.filter(
     (b) => b.therapistId === therapistId && b.date === date && b.status !== 'Rejected'
@@ -217,8 +248,16 @@ export const getTherapistSlotAvailabilityApi = (
 
   const bookedSlotsSet = new Set(dateBookings.map((b) => b.slot));
 
-  return allStandardSlots.map((slot) => ({
-    slot,
-    isAvailable: !bookedSlotsSet.has(slot),
-  }));
+  return allStandardSlots.map((slot) => {
+    const isBooked = bookedSlotsSet.has(slot);
+    const isPast = isSlotInPast(date, slot);
+    const isAvailable = !isBooked && !isPast;
+
+    return {
+      slot,
+      isAvailable,
+      isPast,
+      isBooked,
+    };
+  });
 };

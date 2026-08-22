@@ -16,12 +16,20 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
 
   useEffect(() => {
     if (!loading) {
+      // Portal-aware redirection
+      let targetLogin = '/login';
+      if (allowedRoles?.includes('therapist') && !allowedRoles?.includes('user')) {
+        targetLogin = '/therapist/login';
+      } else if (allowedRoles?.includes('admin') || allowedRoles?.includes('supervisor')) {
+        targetLogin = '/admin/login';
+      }
+
       if (!user) {
-        // Unauthenticated -> Redirect to login page
-        router.push('/login');
+        // Unauthenticated -> Redirect to appropriate portal login
+        router.push(targetLogin);
       } else if (allowedRoles && !allowedRoles.includes(user.role)) {
-        // Authenticated but unauthorized for this specific page -> Redirect to login
-        router.push('/login');
+        // Role mismatch -> Redirect to portal login
+        router.push(targetLogin);
       }
     }
   }, [user, loading, allowedRoles, router]);

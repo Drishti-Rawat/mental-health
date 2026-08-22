@@ -30,6 +30,7 @@ const publicNavLinks: NavLink[] = [
   { name: "About Us", href: "/about" },
   { name: "Psychologists", href: "/psychologists" },
   { name: "Blog", href: "/blogs" },
+  { name: "Join as Therapist", href: "/join-as-therapist" },
   { name: "Contact Us", href: "/contact" },
 ];
 
@@ -53,16 +54,19 @@ export default function Header({
     pathname === "/set-password";
   if (isAuthRoute) return null;
 
-  // Check route types
-  const isLandingPage = pathname === "/";
-  const isDashboardRoute =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/therapist") ||
-    pathname.startsWith("/admin");
+  // Explicit list of Public Marketing pages
+  const isPublicPage =
+    pathname === "/" ||
+    pathname.startsWith("/about") ||
+    pathname.startsWith("/psychologists") ||
+    pathname.startsWith("/blogs") ||
+    pathname.startsWith("/contact") ||
+    pathname.startsWith("/join-as-therapist");
 
-  const isPublicPage = !isDashboardRoute;
+  // Private / App routes (Any route that is not a public marketing page)
+  const isDashboardRoute = !isPublicPage;
 
-  // Nav links are rendered on all public pages (Home, Blog, Psychologists, etc.)
+  // Nav links are rendered on all public marketing pages (Home, Blog, Psychologists, etc.)
   const activeNavLinks: NavLink[] =
     navLinksProp !== undefined
       ? navLinksProp

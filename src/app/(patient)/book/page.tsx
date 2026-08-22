@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getPsychologistsApi, PsychologistData } from '@/services/psychologistApi';
-import { createBookingApi, getTherapistSlotAvailabilityApi } from '@/services/bookingApi';
+import { createBookingApi, getTherapistSlotAvailabilityApi, isSlotInPast } from '@/services/bookingApi';
 import Link from 'next/link';
 
 const STANDARD_TIME_SLOTS = [
@@ -128,6 +128,8 @@ export default function BookSessionPage() {
 
     if (!selectedSlot) {
       newErrors.slot = 'Please select an available time slot.';
+    } else if (isSlotInPast(date, selectedSlot)) {
+      newErrors.slot = 'The selected time slot has already passed. Please select an upcoming slot.';
     }
 
     if (!topic || topic.trim().length < 5) {
@@ -353,31 +355,37 @@ export default function BookSessionPage() {
               <div className="space-y-2">
                 <span className="text-[11px] font-semibold text-slate-500 block">Available Slots for {date}:</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {slotAvailability.map(({ slot, isAvailable }) => {
+                  {slotAvailability.map(({ slot, isAvailable, isBooked }) => {
                     const isSelected = selectedSlot === slot;
+                    let badgeText = 'Available';
+                    if (!isAvailable) badgeText = isBooked ? 'Booked' : 'Unavailable';
+                    else if (isSelected) badgeText = 'Selected';
+
                     return (
                       <button
                         key={slot}
                         type="button"
                         disabled={!isAvailable}
                         onClick={() => setSelectedSlot(slot)}
-                        className={`p-3 rounded-2xl border text-xs font-bold transition flex items-center justify-between cursor-pointer ${!isAvailable
-                          ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through'
-                          : isSelected
-                            ? 'bg-secondary text-white border-secondary shadow-md'
-                            : 'bg-slate-50 hover:bg-white text-slate-700 border-slate-200 hover:border-secondary/40'
-                          }`}
-                      >
-                        <span>{slot}</span>
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold ${!isAvailable
-                            ? 'bg-slate-200 text-slate-500'
+                        className={`p-3 rounded-2xl border text-xs font-bold transition flex items-center justify-between ${
+                          !isAvailable
+                            ? 'bg-slate-100/80 text-slate-400 border-slate-200 cursor-not-allowed opacity-60'
                             : isSelected
+                            ? 'bg-secondary text-white border-secondary shadow-md cursor-pointer'
+                            : 'bg-slate-50 hover:bg-white text-slate-700 border-slate-200 hover:border-secondary/40 cursor-pointer'
+                        }`}
+                      >
+                        <span className={!isAvailable ? 'line-through decoration-slate-300' : ''}>{slot}</span>
+                        <span
+                          className={`text-[10px] px-2.5 py-0.5 rounded-full font-extrabold ${
+                            !isAvailable
+                              ? 'bg-slate-200 text-slate-500 font-medium'
+                              : isSelected
                               ? 'bg-white/20 text-white'
                               : 'bg-emerald-100 text-emerald-700'
-                            }`}
+                          }`}
                         >
-                          {!isAvailable ? 'Booked' : isSelected ? 'Selected' : 'Available'}
+                          {badgeText}
                         </span>
                       </button>
                     );
