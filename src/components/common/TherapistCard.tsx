@@ -32,7 +32,7 @@ export default function TherapistCard({
     : therapist.specialties || "General Therapy";
 
   const imageSrc = therapist.image || "/therapist.png";
-  const bookUrl = `/book?therapistId=${tId}`;
+  const bookUrl = `/book/${tId}`;
 
   return (
     <div

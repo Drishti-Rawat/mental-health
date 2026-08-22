@@ -7,6 +7,7 @@ export interface Booking {
   patientEmail: string;
   therapistId: string;
   therapistName: string;
+  therapistImage?: string;
   date: string; // YYYY-MM-DD
   slot: string; // e.g. "10:30 AM - 11:30 AM"
   type: 'Video Consultation' | 'Chat Session' | 'In-Person';
@@ -45,6 +46,7 @@ export interface CreateBookingPayload {
   patientEmail: string;
   therapistId: string;
   therapistName: string;
+  therapistImage?: string;
   date: string;
   slot: string;
   type: 'Video Consultation' | 'Chat Session' | 'In-Person';
@@ -101,6 +103,7 @@ export const createBookingApi = async (payload: CreateBookingPayload): Promise<B
     patientEmail: payload.patientEmail,
     therapistId: payload.therapistId,
     therapistName: payload.therapistName,
+    therapistImage: payload.therapistImage || '',
     date: payload.date,
     slot: payload.slot,
     type: payload.type || 'Video Consultation',
@@ -120,6 +123,7 @@ export const createBookingApi = async (payload: CreateBookingPayload): Promise<B
         patientEmail: b.patientEmail,
         therapistId: b.therapistId,
         therapistName: b.therapistName,
+        therapistImage: b.therapistImage || payload.therapistImage || '',
         date: b.date,
         slot: b.slot,
         type: b.type,
@@ -140,7 +144,7 @@ export const createBookingApi = async (payload: CreateBookingPayload): Promise<B
 };
 
 /**
- * Get all bookings for a patient
+ * Get all bookings for a patient (Local Sync)
  */
 export const getPatientBookingsApi = (patientEmailOrId?: string): Booking[] => {
   const bookings = getStoredBookings();
@@ -150,6 +154,47 @@ export const getPatientBookingsApi = (patientEmailOrId?: string): Booking[] => {
       b.patientEmail?.toLowerCase() === patientEmailOrId.toLowerCase() ||
       b.patientId === patientEmailOrId
   );
+};
+
+/**
+ * Get all bookings for a patient from Backend MongoDB API
+ */
+export const fetchPatientBookingsAsync = async (patientEmailOrId?: string): Promise<Booking[]> => {
+  const localList = getPatientBookingsApi(patientEmailOrId);
+  try {
+    const res = await apiClient.get('/api/bookings');
+    if (res.data.success && Array.isArray(res.data.bookings)) {
+      const serverBookings: Booking[] = res.data.bookings.map((b: any) => ({
+        id: b.id || b._id || `booking-${Date.now()}`,
+        patientId: b.patient || b.patientId || '',
+        patientName: b.patientName || 'Client',
+        patientEmail: b.patientEmail || '',
+        therapistId: b.therapistId || b.therapist || '',
+        therapistName: b.therapistName || 'Practitioner',
+        therapistImage: b.therapistImage || '',
+        date: b.date || '',
+        slot: b.slot || '',
+        type: b.type || 'Video Consultation',
+        topic: b.topic || '',
+        status: b.status || 'Pending',
+        createdAt: b.createdAt || new Date().toISOString(),
+      }));
+
+      // Merge server & local bookings
+      const mergedMap = new Map<string, Booking>();
+      serverBookings.forEach((b) => mergedMap.set(b.id, b));
+      localList.forEach((b) => {
+        if (!mergedMap.has(b.id)) mergedMap.set(b.id, b);
+      });
+
+      const mergedList = Array.from(mergedMap.values());
+      saveBookings(mergedList);
+      return mergedList;
+    }
+  } catch (err) {
+    console.warn('Backend bookings fetch note: using cached local state.');
+  }
+  return localList;
 };
 
 /**

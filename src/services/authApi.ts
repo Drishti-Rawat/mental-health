@@ -2,6 +2,28 @@ import apiClient from './apiClient';
 
 export type UserRole = 'user' | 'therapist' | 'admin' | 'supervisor' | 'superadmin';
 
+export interface PatientProfileData {
+  phone?: string;
+  dob?: string;
+  gender?: string;
+  avatarImage?: string;
+  emergencyContact?: {
+    name?: string;
+    phone?: string;
+  };
+  therapyPreferences?: {
+    preferredFormat?: 'Video Consultation' | 'Chat Session' | 'In-Person';
+    selectedGoals?: string[];
+    preferredTime?: string;
+  };
+  notifications?: {
+    sessionReminders?: boolean;
+    emailAlerts?: boolean;
+    therapistUpdates?: boolean;
+    monthlyDigest?: boolean;
+  };
+}
+
 export interface UserData {
   id: string;
   name: string;
@@ -9,6 +31,7 @@ export interface UserData {
   role: UserRole;
   status: 'active' | 'pending_approval' | 'approved' | 'inactive' | 'rejected' | string;
   createdAt?: string;
+  patientProfile?: PatientProfileData | null;
 }
 
 export interface AuthResponse {
@@ -76,5 +99,15 @@ export const logoutApi = async (): Promise<{ success: boolean; message: string }
  */
 export const getMeApi = async (): Promise<{ success: boolean; user: UserData }> => {
   const response = await apiClient.get<{ success: boolean; user: UserData }>('/api/auth/me');
+  return response.data;
+};
+
+/**
+ * Update authenticated patient profile details
+ */
+export const updatePatientProfileApi = async (
+  payload: any
+): Promise<{ success: boolean; user: UserData; message: string }> => {
+  const response = await apiClient.put<{ success: boolean; user: UserData; message: string }>('/api/auth/profile', payload);
   return response.data;
 };

@@ -66,6 +66,7 @@ export default function Sidebar({
                   pathname === item.href ||
                   (item.href !== '/admin/dashboard' &&
                     item.href !== '/therapist/dashboard' &&
+                    item.href !== '/dashboard' &&
                     pathname.startsWith(item.href));
 
                 return (

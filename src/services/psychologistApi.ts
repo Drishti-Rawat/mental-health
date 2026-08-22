@@ -79,6 +79,10 @@ export const getPsychologistsApi = async (params?: {
   search?: string;
   status?: string;
   specialty?: string;
+  minExperience?: number;
+  maxFee?: number;
+  language?: string;
+  sort?: string;
 }): Promise<PsychologistsListResponse> => {
   const response = await apiClient.get<PsychologistsListResponse>('/api/psychologists', { params });
   return response.data;

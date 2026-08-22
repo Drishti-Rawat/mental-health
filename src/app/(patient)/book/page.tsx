@@ -1,511 +1,579 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  CalendarDays,
-  Clock,
+  Search,
+  Filter,
+  SlidersHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
   Stethoscope,
-  Video,
-  MessageSquare,
+  X,
   UserCheck,
-  CheckCircle2,
-  AlertCircle,
-  ArrowRight,
-  ShieldCheck,
-  ChevronDown,
-  Sparkles,
 } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import TherapistCard from '@/components/common/TherapistCard';
 import { getPsychologistsApi, PsychologistData } from '@/services/psychologistApi';
-import { createBookingApi, getTherapistSlotAvailabilityApi, isSlotInPast } from '@/services/bookingApi';
-import Link from 'next/link';
 
-const STANDARD_TIME_SLOTS = [
-  '09:00 AM - 10:00 AM',
-  '10:30 AM - 11:30 AM',
-  '02:00 PM - 03:00 PM',
-  '04:30 PM - 05:30 PM',
-  '06:00 PM - 07:00 PM',
+const SPECIALIZATION_OPTIONS = [
+  'All Specializations',
+  'Anxiety & Stress',
+  'Depression & Mood',
+  'Relationship Counselling',
+  'Child & Adolescent Therapy',
+  'Trauma & PTSD',
+  'Career & Growth',
+  'Self Care & Wellbeing',
 ];
 
-export default function BookSessionPage() {
-  const { user } = useAuth();
+const LANGUAGES_LIST = [
+  'All Languages',
+  'English',
+  'Hindi',
+  'Hinglish',
+  'Punjabi',
+  'Bengali',
+  'Tamil',
+];
+
+const ITEMS_PER_PAGE = 9;
+
+export default function PatientBookPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const urlSpecialty = searchParams ? searchParams.get('specialty') : null;
 
+  const [psychologists, setPsychologists] = useState<PsychologistData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const therapistIdParam = searchParams.get('therapistId');
+  // Filter States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  // Therapists list & selection
-  const [therapists, setTherapists] = useState<PsychologistData[]>([]);
-  const [selectedTherapistId, setSelectedTherapistId] = useState<string>(therapistIdParam || '');
-  const [loadingTherapists, setLoadingTherapists] = useState<boolean>(true);
+  const [selectedSpec, setSelectedSpec] = useState(urlSpecialty || 'All Specializations');
+  const [maxFee, setMaxFee] = useState<number>(50000);
+  const [debouncedMaxFee, setDebouncedMaxFee] = useState<number>(50000);
 
-  // Form inputs
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
-  const [date, setDate] = useState<string>(todayStr);
-  const [selectedSlot, setSelectedSlot] = useState<string>('');
-  const [sessionType, setSessionType] = useState<'Video Consultation' | 'Chat Session' | 'In-Person'>('Video Consultation');
-  const [topic, setTopic] = useState<string>('');
+  const [minExp, setMinExp] = useState<number>(0);
+  const [debouncedMinExp, setDebouncedMinExp] = useState<number>(0);
 
-  // Validation & UI state
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [submitting, setSubmitting] = useState<boolean>(false);
-  const [bookingSuccess, setBookingSuccess] = useState<any | null>(null);
+  const [selectedLang, setSelectedLang] = useState('All Languages');
+  const [sortOption, setSortOption] = useState('Experience: High to Low');
 
-  // Fetch list of active therapists
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalRecords, setTotalRecords] = useState<number>(0);
+  const [totalPages, setTotalPages] = useState<number>(1);
+
+  // Mobile Filter Drawer State
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  // Dynamically include any custom specialties filled by therapists into dropdown options
+  const dynamicSpecializationOptions = useMemo(() => {
+    const set = new Set<string>(SPECIALIZATION_OPTIONS);
+    psychologists.forEach((p) => {
+      if (Array.isArray(p.specialties)) {
+        p.specialties.forEach((spec) => {
+          if (spec && spec.trim()) set.add(spec.trim());
+        });
+      }
+    });
+    return Array.from(set);
+  }, [psychologists]);
+
+  // Debounce search query input (500ms delay)
   useEffect(() => {
-    const fetchTherapists = async () => {
-      setLoadingTherapists(true);
-      try {
-        const res = await getPsychologistsApi({ limit: 20 });
-        const list = Array.isArray(res) ? res : res?.psychologists || (res as any)?.data || [];
-        setTherapists(list);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-        if (!selectedTherapistId && list.length > 0) {
-          const firstId = list[0].id || list[0]._id;
-          setSelectedTherapistId(firstId);
-        }
-      } catch (err) {
-        console.error('Failed to load therapists:', err);
-      } finally {
-        setLoadingTherapists(false);
-      }
-    };
+  // Debounce fee and experience sliders (400ms delay)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedMaxFee(maxFee);
+      setDebouncedMinExp(minExp);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [maxFee, minExp]);
 
-    fetchTherapists();
-  }, [therapistIdParam]);
+  // Reset page to 1 whenever debounced filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, selectedSpec, debouncedMaxFee, debouncedMinExp, selectedLang, sortOption]);
 
-  // Find currently selected therapist details
-  const selectedTherapist = useMemo(() => {
-    return therapists.find((t) => (t.id || t._id) === selectedTherapistId) || null;
-  }, [therapists, selectedTherapistId]);
-
-  // Quick Date Chips List (Today, Tomorrow, next 4 days)
-  const upcomingDates = useMemo(() => {
-    const list: { isoDate: string; label: string; subLabel: string }[] = [];
-    const now = new Date();
-    for (let i = 0; i < 6; i++) {
-      const d = new Date(now);
-      d.setDate(now.getDate() + i);
-      const isoDate = d.toISOString().split('T')[0];
-      let label = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-US', { weekday: 'short' });
-      let subLabel = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      list.push({ isoDate, label, subLabel });
-    }
-    return list;
-  }, []);
-
-  // Compute available & booked slots for selected therapist & date
-  const slotAvailability = useMemo(() => {
-    if (!selectedTherapistId || !date) return [];
-    const activeSlots = (selectedTherapist?.availableSlots && selectedTherapist.availableSlots.length > 0)
-      ? selectedTherapist.availableSlots
-      : STANDARD_TIME_SLOTS;
-    return getTherapistSlotAvailabilityApi(selectedTherapistId, date, activeSlots);
-  }, [selectedTherapistId, selectedTherapist, date]);
-
-  // Form Submit Handler with Validation
-  const handleSubmitBooking = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
-    const newErrors: { [key: string]: string } = {};
-
-    if (!selectedTherapistId) {
-      newErrors.therapist = 'Please select a therapist for your session.';
-    }
-
-    if (!date) {
-      newErrors.date = 'Please select a consultation date.';
-    } else {
-      const chosen = new Date(date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (chosen < today) {
-        newErrors.date = 'Consultation date cannot be in the past.';
-      }
-    }
-
-    if (!selectedSlot) {
-      newErrors.slot = 'Please select an available time slot.';
-    } else if (isSlotInPast(date, selectedSlot)) {
-      newErrors.slot = 'The selected time slot has already passed. Please select an upcoming slot.';
-    }
-
-    if (!topic || topic.trim().length < 5) {
-      newErrors.topic = 'Please describe your reason or goal for consultation (at least 5 characters).';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setSubmitting(true);
-
+  const fetchPsychologists = async () => {
+    setLoading(true);
     try {
-      const therapistName = selectedTherapist?.name || 'Practitioner';
-      const patientName = user?.name || 'Client';
-      const patientEmail = user?.email || 'patient@example.com';
-      const patientId = user?.id || 'usr-patient';
-
-      const booking = await createBookingApi({
-        patientId,
-        patientName,
-        patientEmail,
-        therapistId: selectedTherapistId,
-        therapistName,
-        date,
-        slot: selectedSlot,
-        type: sessionType,
-        topic,
+      const res = await getPsychologistsApi({
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+        search: debouncedSearch.trim() || undefined,
+        specialty: selectedSpec !== 'All Specializations' ? selectedSpec : undefined,
+        minExperience: debouncedMinExp > 0 ? debouncedMinExp : undefined,
+        maxFee: debouncedMaxFee < 50000 ? debouncedMaxFee : undefined,
+        language: selectedLang !== 'All Languages' ? selectedLang : undefined,
+        sort: sortOption,
       });
 
-      setBookingSuccess(booking);
-    } catch (err: any) {
-      setErrors({ form: err.message || 'Failed to complete session booking. Please try again.' });
+      const items = res?.psychologists || (Array.isArray(res) ? res : []);
+      setPsychologists(items || []);
+
+      if (res?.pagination) {
+        setTotalRecords(res.pagination.totalRecords);
+        setTotalPages(res.pagination.totalPages || 1);
+      } else {
+        setTotalRecords(items.length);
+        setTotalPages(Math.max(1, Math.ceil(items.length / ITEMS_PER_PAGE)));
+      }
+    } catch (err) {
+      console.error('Failed to fetch psychologists from backend API:', err);
+      setPsychologists([]);
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchPsychologists();
+  }, [debouncedSearch, selectedSpec, debouncedMaxFee, debouncedMinExp, selectedLang, sortOption, currentPage]);
+
+  const handleBookClick = (therapist: PsychologistData) => {
+    const tId = therapist.id || therapist._id;
+    router.push(`/book/${tId}`);
+  };
+
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  const hasActiveFilters =
+    searchQuery ||
+    selectedSpec !== 'All Specializations' ||
+    maxFee < 50000 ||
+    minExp > 0 ||
+    selectedLang !== 'All Languages';
+
+  const resetFilters = () => {
+    setSearchQuery('');
+    setSelectedSpec('All Specializations');
+    setMaxFee(50000);
+    setMinExp(0);
+    setSelectedLang('All Languages');
+    setSortOption('Experience: High to Low');
+    setCurrentPage(1);
+  };
+
   return (
-    <div className="py-8 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-8">
-      {/* Top Banner Header */}
-      <div className="bg-gradient-to-r from-primary via-secondary to-primary text-white rounded-3xl p-6 sm:p-8 shadow-md relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 text-tertiary flex items-center justify-center shrink-0 shadow-xs backdrop-blur-xs">
-              <CalendarDays className="w-7 h-7" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-white">Book a Therapy Session</h1>
-              <p className="text-xs sm:text-sm text-tertiary/90 mt-0.5">
-                Select your therapist, pick a convenient date & available time slot.
-              </p>
+    <div className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
+      {/* Page Title Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
+        <div>
+          <h1 className="text-2xl font-serif font-bold text-slate-900 flex items-center gap-2">
+            <Stethoscope className="w-6 h-6 text-secondary" />
+            <span>Book a Session</span>
+          </h1>
+          <p className="text-xs text-slate-500 font-medium">
+            Find verified psychologists and schedule your consultation.
+          </p>
+        </div>
+
+        {/* Mobile Filter Toggle */}
+        <button
+          onClick={() => setIsMobileFilterOpen(true)}
+          className="lg:hidden px-3.5 py-1.5 rounded-xl bg-secondary text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+        >
+          <Filter className="w-3.5 h-3.5" />
+          <span>Filter Therapists</span>
+        </button>
+      </div>
+
+      {/* Main Layout Grid: Compact Left Filter Box + Right Therapist Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+        {/* LEFT COLUMN: Compact Sidebar Filter Box */}
+        <div className="hidden lg:block lg:col-span-1 bg-white rounded-2xl p-4 border border-slate-200/80 shadow-2xs space-y-4 sticky top-20 text-xs">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+            <h2 className="font-bold text-slate-900 flex items-center gap-1.5 text-xs">
+              <Filter className="w-3.5 h-3.5 text-secondary" />
+              <span>Filters</span>
+            </h2>
+
+            {hasActiveFilters && (
+              <button
+                onClick={resetFilters}
+                className="text-[10px] font-extrabold text-rose-600 hover:underline flex items-center gap-0.5 cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset</span>
+              </button>
+            )}
+          </div>
+
+          {/* Search Input */}
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-700 block">Search</label>
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onBlur={() => setDebouncedSearch(searchQuery)}
+                onKeyDown={(e) => e.key === 'Enter' && setDebouncedSearch(searchQuery)}
+                placeholder="Name or specialty..."
+                className="w-full pl-8 pr-7 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-secondary"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
             </div>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-xs font-semibold text-emerald-200 border border-white/15">
-            <ShieldCheck className="w-4 h-4 text-emerald-300" />
-            <span>100% Confidential</span>
+          {/* Specialization Filter */}
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-700 block">Specialization</label>
+            <select
+              value={selectedSpec}
+              onChange={(e) => setSelectedSpec(e.target.value)}
+              className="w-full p-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:border-secondary cursor-pointer"
+            >
+              {dynamicSpecializationOptions.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Max Session Fee Slider */}
+          <div className="space-y-1 p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 text-[11px]">
+            <div className="flex justify-between font-bold">
+              <span className="text-slate-500">Max Fee:</span>
+              <span className="text-primary font-extrabold">
+                {maxFee >= 50000 ? '>₹50,000' : `₹${maxFee.toLocaleString()}`}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="500"
+              max="50000"
+              step="500"
+              value={maxFee}
+              onChange={(e) => setMaxFee(Number(e.target.value))}
+              className="w-full accent-secondary cursor-pointer h-1"
+            />
+          </div>
+
+          {/* Min Experience Slider */}
+          <div className="space-y-1 p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 text-[11px]">
+            <div className="flex justify-between font-bold">
+              <span className="text-slate-500">Min Experience:</span>
+              <span className="text-secondary font-extrabold">{minExp} Yrs+</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="20"
+              step="1"
+              value={minExp}
+              onChange={(e) => setMinExp(Number(e.target.value))}
+              className="w-full accent-secondary cursor-pointer h-1"
+            />
+          </div>
+
+          {/* Language Filter */}
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-700 block">Language</label>
+            <select
+              value={selectedLang}
+              onChange={(e) => setSelectedLang(e.target.value)}
+              className="w-full p-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:border-secondary cursor-pointer"
+            >
+              {LANGUAGES_LIST.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sort Option */}
+          <div className="space-y-1">
+            <label className="text-[11px] font-bold text-slate-700 block">Sort Order</label>
+            <select
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+              className="w-full p-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 focus:outline-none focus:border-secondary cursor-pointer"
+            >
+              <option value="Experience: High to Low">Exp: High to Low</option>
+              <option value="Experience: Low to High">Exp: Low to High</option>
+              <option value="Rating: High to Low">Rating: High to Low</option>
+            </select>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Therapist Cards Grid (3 Columns x 3 Rows = 9 Cards) & Pagination */}
+        <div className="lg:col-span-3 space-y-6">
+          {/* Results Summary Bar */}
+          <div className="flex items-center justify-between text-xs text-slate-500 font-medium px-1">
+            <span>
+              Showing <strong className="text-slate-900">{totalRecords === 0 ? 0 : startIndex + 1}</strong>–
+              <strong className="text-slate-900">{Math.min(startIndex + ITEMS_PER_PAGE, totalRecords)}</strong> of{' '}
+              <strong className="text-slate-900">{totalRecords}</strong> Therapists
+            </span>
+
+            <span className="font-bold text-secondary bg-tertiary/60 px-3 py-1 rounded-full border border-secondary/20">
+              Page {currentPage} of {totalPages}
+            </span>
+          </div>
+
+          {/* Loading State */}
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+                <div key={n} className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-2xs space-y-4 animate-pulse">
+                  <div className="h-44 bg-slate-200 rounded-2xl" />
+                  <div className="h-4 bg-slate-200 rounded-full w-3/4" />
+                  <div className="h-3 bg-slate-200 rounded-full w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : psychologists.length === 0 ? (
+            /* Empty State */
+            <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 max-w-md mx-auto space-y-4 shadow-2xs">
+              <UserCheck className="w-10 h-10 text-slate-400 mx-auto" />
+              <h3 className="font-bold text-slate-800 text-lg">No Therapists Found</h3>
+              <p className="text-xs text-slate-500">
+                No specialists matched your filter criteria. Try clearing search or filters.
+              </p>
+              <button
+                onClick={resetFilters}
+                className="px-5 py-2.5 rounded-full bg-primary text-white text-xs font-semibold hover:bg-secondary transition shadow-xs cursor-pointer"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          ) : (
+            /* Cards Grid (3 Columns x 3 Rows = 9 Cards) */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {psychologists.map((t) => {
+                const tId = t.id || t._id || t.name;
+                return (
+                  <TherapistCard
+                    key={tId}
+                    therapist={t}
+                    onBookClick={handleBookClick}
+                    buttonText="Book a Session"
+                  />
+                );
+              })}
+            </div>
+          )}
+
+          {/* ALWAYS RENDER PAGINATION CONTROLS BAR (Even on Page 1 or with single page) */}
+          <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span className="text-xs font-semibold text-slate-600">
+              Page <strong className="text-slate-900">{currentPage}</strong> of{' '}
+              <strong className="text-slate-900">{totalPages}</strong>
+            </span>
+
+            {/* Page Number Buttons */}
+            <div className="flex items-center gap-1.5">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                className="p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+                aria-label="Previous Page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => {
+                const isSelected = pageNum === currentPage;
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-8 h-8 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      isSelected
+                        ? 'bg-secondary text-white shadow-2xs'
+                        : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              <button
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                className="p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+                aria-label="Next Page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Booking Success Modal View */}
-      {bookingSuccess ? (
-        <div className="bg-white rounded-3xl p-8 border border-emerald-200 shadow-xl text-center space-y-6 animate-in fade-in zoom-in-95 duration-200">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200">
-            <CheckCircle2 className="w-9 h-9" />
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-2xl font-serif font-bold text-slate-900">Session Booking Requested!</h2>
-            <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
-              Your consultation request with <span className="font-bold text-secondary">{bookingSuccess.therapistName}</span> has been submitted successfully and is pending practitioner confirmation.
-            </p>
-          </div>
-
-          <div className="bg-slate-50 p-4 sm:p-6 rounded-2xl border border-slate-200 max-w-lg mx-auto grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-left">
-            <div>
-              <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">Booking Reference</span>
-              <span className="font-mono font-bold text-slate-800">{bookingSuccess.id}</span>
-            </div>
-            <div>
-              <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">Status</span>
-              <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[11px] inline-block mt-0.5">
-                {bookingSuccess.status} (Awaiting Acceptance)
-              </span>
-            </div>
-            <div>
-              <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">Scheduled Date & Slot</span>
-              <span className="font-bold text-slate-800">{bookingSuccess.date} • {bookingSuccess.slot}</span>
-            </div>
-            <div>
-              <span className="text-slate-400 font-bold uppercase tracking-wider block text-[10px]">Session Format</span>
-              <span className="font-bold text-secondary">{bookingSuccess.type}</span>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <Link
-              href="/dashboard"
-              className="w-full sm:w-auto px-7 py-3 rounded-full bg-primary hover:bg-secondary text-white font-bold text-xs transition shadow-md cursor-pointer flex items-center justify-center gap-2"
-            >
-              <span>View My Bookings</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <button
-              onClick={() => {
-                setBookingSuccess(null);
-                setSelectedSlot('');
-                setTopic('');
-              }}
-              className="w-full sm:w-auto px-6 py-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer"
-            >
-              Book Another Session
-            </button>
-          </div>
-        </div>
-      ) : (
-        /* Main Interactive Form */
-        <form onSubmit={handleSubmitBooking} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column: Form Controls (2 cols) */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Top Form Alert Error */}
-            {errors.form && (
-              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                <span>{errors.form}</span>
+      {/* MOBILE FILTER DRAWER MODAL */}
+      {isMobileFilterOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex flex-col justify-end lg:hidden">
+          <div className="flex-1" onClick={() => setIsMobileFilterOpen(false)} />
+          <div className="bg-white rounded-t-3xl p-5 space-y-3.5 shadow-2xl border-t border-slate-200 animate-in slide-in-from-bottom duration-200">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4 text-secondary" />
+                <h3 className="font-serif font-bold text-slate-900 text-sm">Filter Therapists</h3>
               </div>
-            )}
 
-            {/* 1. Therapist Selection Dropdown */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
-              <label className="text-xs font-bold text-slate-900 block flex items-center gap-1.5">
-                <Stethoscope className="w-4 h-4 text-secondary" />
-                <span>1. Select Therapist</span>
-              </label>
-
-              {loadingTherapists ? (
-                <div className="h-11 bg-slate-100 animate-pulse rounded-2xl" />
-              ) : (
-                <div className="relative">
-                  <select
-                    value={selectedTherapistId}
-                    onChange={(e) => {
-                      setSelectedTherapistId(e.target.value);
-                      setSelectedSlot('');
-                    }}
-                    className="w-full h-11 px-4 pr-9 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 appearance-none focus:outline-none focus:border-secondary cursor-pointer"
+              <div className="flex items-center gap-3">
+                {hasActiveFilters && (
+                  <button
+                    onClick={resetFilters}
+                    className="text-[11px] font-extrabold text-rose-600 hover:underline flex items-center gap-1 cursor-pointer"
                   >
-                    {therapists.map((t) => {
-                      const id = t.id || t._id;
-                      return (
-                        <option key={id} value={id}>
-                          {t.name} ({t.title || 'Clinical Psychologist'}) — ₹{(t.consultationFee || 1500).toLocaleString()}/session
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                </div>
-              )}
-              {errors.therapist && <p className="text-[11px] font-bold text-rose-600">{errors.therapist}</p>}
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Reset</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => setIsMobileFilterOpen(false)}
+                  className="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
-            {/* 2. Date Picker & Available Time Slots */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                <label className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  <Clock className="w-4 h-4 text-secondary" />
-                  <span>2. Pick Date & Available Time Slot</span>
-                </label>
-
-                {/* Calendar Input */}
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-semibold text-slate-500">Select Custom Date:</span>
+            <div className="space-y-2.5 text-xs">
+              {/* Row 1: Full-Width Search Input */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-700 block">Search Practitioner</label>
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
-                    type="date"
-                    min={todayStr}
-                    value={date}
-                    onChange={(e) => {
-                      setDate(e.target.value);
-                      setSelectedSlot('');
-                    }}
-                    className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:border-secondary cursor-pointer"
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onBlur={() => setDebouncedSearch(searchQuery)}
+                    onKeyDown={(e) => e.key === 'Enter' && setDebouncedSearch(searchQuery)}
+                    placeholder="Search by name, title, or specialty..."
+                    className="w-full pl-9 pr-8 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-secondary"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Row 2: Specialization & Language (2 cols) */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-700 block">Specialization</label>
+                  <select
+                    value={selectedSpec}
+                    onChange={(e) => setSelectedSpec(e.target.value)}
+                    className="w-full px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700"
+                  >
+                    {dynamicSpecializationOptions.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-700 block">Language</label>
+                  <select
+                    value={selectedLang}
+                    onChange={(e) => setSelectedLang(e.target.value)}
+                    className="w-full px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700"
+                  >
+                    {LANGUAGES_LIST.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Row 3: Max Fee & Min Exp Sliders (2 cols) */}
+              <div className="grid grid-cols-2 gap-2.5 text-[10px]">
+                <div className="space-y-1 p-2 rounded-xl bg-slate-50 border border-slate-200/60">
+                  <div className="flex justify-between font-bold">
+                    <span className="text-slate-500">Max Fee:</span>
+                    <span className="text-primary font-extrabold">
+                      {maxFee >= 50000 ? '>₹50,000' : `₹${maxFee.toLocaleString()}`}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="500"
+                    max="50000"
+                    step="500"
+                    value={maxFee}
+                    onChange={(e) => setMaxFee(Number(e.target.value))}
+                    className="w-full accent-secondary cursor-pointer h-1"
+                  />
+                </div>
+
+                <div className="space-y-1 p-2 rounded-xl bg-slate-50 border border-slate-200/60">
+                  <div className="flex justify-between font-bold">
+                    <span className="text-slate-500">Min Exp:</span>
+                    <span className="text-secondary font-extrabold">{minExp} Yrs+</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="20"
+                    step="1"
+                    value={minExp}
+                    onChange={(e) => setMinExp(Number(e.target.value))}
+                    className="w-full accent-secondary cursor-pointer h-1"
                   />
                 </div>
               </div>
 
-              {/* Quick Date Selector Chips */}
-              <div className="space-y-2">
-                <span className="text-[11px] font-semibold text-slate-500 block">Quick Pick Date:</span>
-                <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  {upcomingDates.map((item) => {
-                    const isSelected = date === item.isoDate;
-                    return (
-                      <button
-                        key={item.isoDate}
-                        type="button"
-                        onClick={() => {
-                          setDate(item.isoDate);
-                          setSelectedSlot('');
-                        }}
-                        className={`p-2.5 rounded-2xl border text-center transition cursor-pointer flex flex-col items-center justify-center ${
-                          isSelected
-                            ? 'bg-secondary text-white border-secondary shadow-xs font-bold'
-                            : 'bg-slate-50 hover:bg-white text-slate-700 border-slate-200 hover:border-secondary/40'
-                        }`}
-                      >
-                        <span className="text-xs font-bold">{item.label}</span>
-                        <span className={`text-[10px] ${isSelected ? 'text-white/80' : 'text-slate-400'}`}>
-                          {item.subLabel}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {errors.date && <p className="text-[11px] font-bold text-rose-600">{errors.date}</p>}
-
-              {/* Time Slots Grid */}
-              <div className="space-y-2">
-                <span className="text-[11px] font-semibold text-slate-500 block">Available Slots for {date}:</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {slotAvailability.map(({ slot, isAvailable, isBooked }) => {
-                    const isSelected = selectedSlot === slot;
-                    let badgeText = 'Available';
-                    if (!isAvailable) badgeText = isBooked ? 'Booked' : 'Unavailable';
-                    else if (isSelected) badgeText = 'Selected';
-
-                    return (
-                      <button
-                        key={slot}
-                        type="button"
-                        disabled={!isAvailable}
-                        onClick={() => setSelectedSlot(slot)}
-                        className={`p-3 rounded-2xl border text-xs font-bold transition flex items-center justify-between ${
-                          !isAvailable
-                            ? 'bg-slate-100/80 text-slate-400 border-slate-200 cursor-not-allowed opacity-60'
-                            : isSelected
-                            ? 'bg-secondary text-white border-secondary shadow-md cursor-pointer'
-                            : 'bg-slate-50 hover:bg-white text-slate-700 border-slate-200 hover:border-secondary/40 cursor-pointer'
-                        }`}
-                      >
-                        <span className={!isAvailable ? 'line-through decoration-slate-300' : ''}>{slot}</span>
-                        <span
-                          className={`text-[10px] px-2.5 py-0.5 rounded-full font-extrabold ${
-                            !isAvailable
-                              ? 'bg-slate-200 text-slate-500 font-medium'
-                              : isSelected
-                              ? 'bg-white/20 text-white'
-                              : 'bg-emerald-100 text-emerald-700'
-                          }`}
-                        >
-                          {badgeText}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              {errors.slot && <p className="text-[11px] font-bold text-rose-600">{errors.slot}</p>}
-            </div>
-
-            {/* 3. Session Format & Consultation Topic */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
-              <label className="text-xs font-bold text-slate-900 block flex items-center gap-1.5 border-b border-slate-100 pb-3">
-                <Video className="w-4 h-4 text-secondary" />
-                <span>3. Session Format & Consultation Focus</span>
-              </label>
-
-              {/* Format selection */}
-              <div className="grid grid-cols-3 gap-2">
-                {(['Video Consultation', 'Chat Session', 'In-Person'] as const).map((fmt) => (
-                  <button
-                    key={fmt}
-                    type="button"
-                    onClick={() => setSessionType(fmt)}
-                    className={`py-2.5 px-3 rounded-2xl border text-xs font-bold transition cursor-pointer text-center ${sessionType === fmt
-                      ? 'bg-primary text-white border-primary shadow-xs'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                  >
-                    {fmt}
-                  </button>
-                ))}
-              </div>
-
-              {/* Topic Input */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-700 block">
-                  What would you like to focus on in this session? *
-                </label>
-                <textarea
-                  rows={3}
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  placeholder="e.g. Managing workplace anxiety, relationship communication, CBT strategies..."
-                  className="w-full p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-medium focus:outline-none focus:border-secondary"
-                />
-                {errors.topic && <p className="text-[11px] font-bold text-rose-600">{errors.topic}</p>}
+              {/* Row 4: Sort Order Select */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-700 block">Sort Order</label>
+                <select
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value)}
+                  className="w-full px-2.5 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700"
+                >
+                  <option value="Experience: High to Low">Exp: High to Low</option>
+                  <option value="Experience: Low to High">Exp: Low to High</option>
+                  <option value="Rating: High to Low">Rating: High to Low</option>
+                </select>
               </div>
             </div>
 
-            {/* Submit Button */}
-            <div className="pt-2">
+            <div className="pt-1">
               <button
-                type="submit"
-                disabled={submitting}
-                className="w-full py-4 rounded-full bg-primary hover:bg-secondary text-white font-bold text-sm transition shadow-lg cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                onClick={() => setIsMobileFilterOpen(false)}
+                className="w-full py-3 rounded-full bg-primary hover:bg-secondary text-white font-bold text-xs transition shadow-md cursor-pointer"
               >
-                {submitting ? (
-                  <span>Submitting Booking...</span>
-                ) : (
-                  <>
-                    <span>Confirm Session Booking</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
+                Apply Filters ({totalRecords} Practitioners)
               </button>
             </div>
           </div>
-
-          {/* Right Column: Selected Practitioner Summary Card (1 col) */}
-          <div className="space-y-6">
-            {selectedTherapist ? (
-              <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4 sticky top-24">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-secondary block border-b border-slate-100 pb-2">
-                  Selected Practitioner
-                </span>
-
-                <div className="flex items-center gap-3.5">
-                  <div className="w-14 h-14 rounded-2xl bg-tertiary text-secondary font-extrabold text-xl flex items-center justify-center border border-secondary/20 shrink-0">
-                    {selectedTherapist.name.replace(/^Dr\.\s*/i, '').charAt(0) || 'D'}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-base text-foreground">{selectedTherapist.name}</h3>
-                    <p className="text-xs text-secondary font-medium mt-0.5">{selectedTherapist.title}</p>
-                    <p className="text-[11px] text-slate-400">{selectedTherapist.qualifications}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-xs pt-2">
-                  <div className="flex justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                    <span className="text-slate-500 font-medium">Session Fee</span>
-                    <span className="font-extrabold text-slate-900">
-                      ₹{(selectedTherapist.consultationFee || 1500).toLocaleString()}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                    <span className="text-slate-500 font-medium">Experience</span>
-                    <span className="font-bold text-slate-800">{selectedTherapist.experienceYears || 5} Years</span>
-                  </div>
-
-                  <div className="flex justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                    <span className="text-slate-500 font-medium">Patient Rating</span>
-                    <span className="font-bold text-amber-600">{selectedTherapist.rating || 4.9} ★</span>
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-tertiary/40 border border-secondary/20 text-[11px] text-slate-700 leading-relaxed">
-                  <span className="font-bold text-primary block mb-1">Specialties:</span>
-                  {Array.isArray(selectedTherapist.specialties)
-                    ? selectedTherapist.specialties.join(', ')
-                    : selectedTherapist.specialties}
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white p-6 rounded-3xl border border-slate-200/80 text-center text-slate-400 text-xs">
-                Select a practitioner to preview fee & profile.
-              </div>
-            )}
-          </div>
-        </form>
+        </div>
       )}
     </div>
   );

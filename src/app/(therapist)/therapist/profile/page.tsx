@@ -28,15 +28,15 @@ import apiClient from '@/services/apiClient';
 
 const PRESET_SPECIALTIES = [
   'Anxiety & Stress',
-  'Depression',
-  'Relationship & Marriage',
+  'Depression & Mood',
+  'Relationship Counselling',
+  'Child & Adolescent Therapy',
   'Trauma & PTSD',
-  'Career Guidance',
-  'Child & Adolescent',
-  'Cognitive Behavioral Therapy (CBT)',
-  'Grief & Loss',
-  'Self-Esteem & Confidence',
-  'Mindfulness & Wellness',
+  'Career & Growth',
+  'Self Care & Wellbeing',
+  'CBT & Mindfulness',
+  'OCD & Panic',
+  'Addiction Support',
 ];
 
 export default function TherapistProfilePage() {

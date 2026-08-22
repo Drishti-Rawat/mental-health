@@ -1021,7 +1021,7 @@ export default function AdminPsychologistsPage() {
                 <label className="block text-xs font-semibold text-foreground mb-1">Specialties (comma separated)</label>
                 <input
                   type="text"
-                  placeholder="e.g. Anxiety, Depression, Trauma, Relationship"
+                  placeholder="e.g. Anxiety & Stress, Depression & Mood, Relationship Counselling, Trauma & PTSD"
                   value={formData.specialties}
                   onChange={(e) => setFormData({ ...formData, specialties: e.target.value })}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/15"
@@ -1179,6 +1179,7 @@ export default function AdminPsychologistsPage() {
                 <label className="block text-xs font-semibold text-foreground mb-1">Specialties (comma separated)</label>
                 <input
                   type="text"
+                  placeholder="e.g. Anxiety & Stress, Depression & Mood, Relationship Counselling, Trauma & PTSD"
                   value={formData.specialties}
                   onChange={(e) => setFormData({ ...formData, specialties: e.target.value })}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/15"

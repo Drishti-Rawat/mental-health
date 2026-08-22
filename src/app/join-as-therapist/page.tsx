@@ -53,18 +53,17 @@ const DEGREE_OPTIONS = [
 ];
 
 const PRESET_SPECIALTIES = [
-  "Anxiety",
-  "Depression",
+  "Anxiety & Stress",
+  "Depression & Mood",
+  "Relationship Counselling",
+  "Child & Adolescent Therapy",
   "Trauma & PTSD",
-  "Relationships",
-  "CBT",
-  "Mindfulness",
-  "Stress Management",
+  "Career & Growth",
+  "Self Care & Wellbeing",
+  "CBT & Mindfulness",
+  "OCD & Panic",
+  "Addiction Support",
   "Family Therapy",
-  "Child & Adolescent",
-  "OCD",
-  "Addiction",
-  "Bipolar Disorder",
 ];
 
 const PRESET_LANGUAGES = [
