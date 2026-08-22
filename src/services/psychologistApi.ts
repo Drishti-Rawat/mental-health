@@ -89,6 +89,30 @@ export const getPsychologistsApi = async (params?: {
 };
 
 /**
+ * Fetch distinct specialties directly from backend MongoDB
+ */
+export const getSpecialtiesApi = async (): Promise<string[]> => {
+  try {
+    const response = await apiClient.get<{ success: boolean; specialties: string[] }>('/api/psychologists/specialties');
+    if (response.data.success && Array.isArray(response.data.specialties)) {
+      return response.data.specialties;
+    }
+  } catch (err) {
+    console.warn('Backend specialties fetch fallback note.');
+  }
+  return [
+    'All Specializations',
+    'Anxiety & Stress',
+    'Depression & Mood',
+    'Relationship Counselling',
+    'Child & Adolescent Therapy',
+    'Trauma & PTSD',
+    'Career & Growth',
+    'Self Care & Wellbeing',
+  ];
+};
+
+/**
  * Fetch psychologist details by ID
  */
 export const getPsychologistByIdApi = async (id: string): Promise<SinglePsychologistResponse> => {

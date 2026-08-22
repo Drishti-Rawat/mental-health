@@ -14,7 +14,7 @@ import {
   UserCheck,
 } from 'lucide-react';
 import TherapistCard from '@/components/common/TherapistCard';
-import { getPsychologistsApi, PsychologistData } from '@/services/psychologistApi';
+import { getPsychologistsApi, getSpecialtiesApi, PsychologistData } from '@/services/psychologistApi';
 
 const SPECIALIZATION_OPTIONS = [
   'All Specializations',
@@ -46,6 +46,7 @@ export default function PatientBookPage() {
 
   const [psychologists, setPsychologists] = useState<PsychologistData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [backendSpecialties, setBackendSpecialties] = useState<string[]>(SPECIALIZATION_OPTIONS);
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -69,9 +70,18 @@ export default function PatientBookPage() {
   // Mobile Filter Drawer State
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
+  // Fetch specialties from backend API on mount
+  useEffect(() => {
+    getSpecialtiesApi().then((list) => {
+      if (list && list.length > 0) {
+        setBackendSpecialties(list);
+      }
+    });
+  }, []);
+
   // Dynamically include any custom specialties filled by therapists into dropdown options
   const dynamicSpecializationOptions = useMemo(() => {
-    const set = new Set<string>(SPECIALIZATION_OPTIONS);
+    const set = new Set<string>(backendSpecialties);
     psychologists.forEach((p) => {
       if (Array.isArray(p.specialties)) {
         p.specialties.forEach((spec) => {
@@ -80,7 +90,7 @@ export default function PatientBookPage() {
       }
     });
     return Array.from(set);
-  }, [psychologists]);
+  }, [backendSpecialties, psychologists]);
 
   // Debounce search query input (500ms delay)
   useEffect(() => {
